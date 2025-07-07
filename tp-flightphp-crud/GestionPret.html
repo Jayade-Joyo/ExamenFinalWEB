@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des Types de Prêt</title>
+  <style>
+    /* Styles généraux pour le corps de la page */
+    body {
+      font-family: 'Inter', sans-serif; /* Utilisation de la police Inter */
+      padding: 20px;
+      background-color: #f4f7f6; /* Couleur de fond légère */
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* Styles pour les titres */
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 10px;
+    }
+
+    /* Styles pour le conteneur du formulaire */
+    div {
+      background-color: #ffffff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      margin-bottom: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px; /* Espace entre les éléments du formulaire */
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Styles pour les champs de saisie et les sélecteurs */
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="date"],
+    select {
+      flex: 1 1 calc(33% - 20px); /* 3 éléments par ligne sur grand écran, avec espace */
+      padding: 12px;
+      margin: 5px 0;
+      border: 1px solid #dcdcdc;
+      border-radius: 8px;
+      box-sizing: border-box; /* Inclut le padding et la bordure dans la largeur totale */
+      font-size: 1em;
+      min-width: 150px; /* Largeur minimale pour les petits écrans */
+    }
+
+    /* Styles pour les boutons */
+    button {
+      padding: 12px 25px;
+      margin: 5px;
+      border: none;
+      border-radius: 8px;
+      background-color: #3498db; /* Couleur primaire pour les boutons */
+      color: white;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+    }
+
+    button:hover {
+      background-color: #2980b9; /* Assombrir au survol */
+      transform: translateY(-2px); /* Petit effet de soulèvement */
+    }
+
+    /* Styles spécifiques pour les boutons d'action dans le tableau */
+    button.action-button {
+      background-color: #2ecc71; /* Vert pour modifier */
+      margin: 0 3px;
+      padding: 8px 12px;
+      font-size: 0.9em;
+      box-shadow: none;
+    }
+
+    button.action-button:hover {
+      background-color: #27ae60;
+      transform: none;
+    }
+
+    button.delete-button {
+      background-color: #e74c3c; /* Rouge pour supprimer */
+    }
+
+    button.delete-button:hover {
+      background-color: #c0392b;
+    }
+
+    /* Styles pour le tableau */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+      background-color: #ffffff;
+      border-radius: 12px;
+      overflow: hidden; /* Pour que les coins arrondis s'appliquent */
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    th, td {
+      border: 1px solid #ecf0f1; /* Bordures de cellules légères */
+      padding: 15px;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      background-color: #34495e; /* En-tête de tableau foncé */
+      color: white;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 0.9em;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9fbfb; /* Lignes paires légèrement grisées */
+    }
+
+    tr:hover {
+      background-color: #e8f6f8; /* Effet de survol sur les lignes */
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      input[type="text"],
+      input[type="number"],
+      input[type="email"],
+      input[type="date"],
+      select {
+        flex: 1 1 100%; /* Un élément par ligne sur les petits écrans */
+      }
+      div {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      button {
+        width: 100%;
+        margin: 5px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Gestion des Types de Prêt</h1>
+
+  <div>
+    <!-- Champ caché pour l'ID du type de prêt (utilisé pour la modification) -->
+ <input type="hidden" id="id_pret">
+
+    <!-- Champs de saisie pour les informations du type de prêt -->
+    <input type="text" id="tp_nom_type" placeholder="Nom du Type de Prêt" required>
+    
+    <select id="id_client">
+      <option value=""></option>
+    </select>
+    
+    <select id="id_type_pret">
+      <option value=""></option>
+    </select>
+
+    <select id="id_etablissement">
+      <option value=""></option>
+    </select>
+
+    <select id="id_statu">
+      <option value=""></option>
+    </select>
+
+        <select id="id_frequence">
+      <option value=""></option>
+    </select>
+    
+    <input type="number" id="montant" placeholder="Montant" step="0.01">
+    <input type="date" id="date_debut"step="0.01">
+    <input type="date" name="data_fin" id="data_fin">
+    <input type="date"  id="date_creation">
+
+    <button onclick="ajouterOuModifierTypePret()">Ajouter / Modifier Type de Prêt</button>
+    <button onclick="resetFormTypePret()" style="background-color: #95a5a6;">Réinitialiser</button>
+  </div>
+
+  <!-- Tableau pour afficher la liste des types de prêt -->
+  <table id="table-types-pret">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nom</th>
+        <th>Type</th>
+        <th>Etablissement</th>
+        <th>Statut</th>
+        <th>frequence</th>
+        <th>Montant</th>
+        <th>date debut</th>
+        <th>Date fin</th>
+        <th>montant_restant</th>
+        <th>Date_creation</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Les données des types de prêt seront insérées ici par JavaScript -->
+    </tbody>
+  </table>
+
+
+  <script>
+    const apiBase = "http://localhost/ExamenFinalWEB/tp-flightphp-crud/ws";
+
+    // Charger les données nécessaires pour les selects
+    function chargerDonneesSelects() {
+      // Ici vous devriez faire des appels AJAX pour remplir:
+      // - Les clients
+      // - Les types de prêt
+      // - Les établissements
+      // - Les statuts
+      // - Les fréquences
+    }
+
+    function chargerPrets() {
+      ajax("GET", "/pret", null, (data) => {
+        const tbody = document.querySelector("#table-prets tbody");
+        tbody.innerHTML = "";
+        data.forEach(pret => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${pret.id_pret}</td>
+            <td>${pret.id_client}</td> <!-- A remplacer par le nom du client -->
+            <td>${pret.id_type_pret}</td> <!-- A remplacer par le libellé du type -->
+            <td>${parseFloat(pret.montant).toFixed(2)}</td>
+            <td>${pret.date_debut}</td>
+            <td>${pret.date_fin}</td>
+            <td>${pret.id_statut}</td> <!-- A remplacer par le libellé du statut -->
+            <td>
+              <button class="action-button" onclick='remplirFormulairePret(${JSON.stringify(pret)})'>✏️</button>
+              <button class="action-button delete-button" onclick='supprimerPret(${pret.id_pret})'>🗑️</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    function ajouterOuModifierPret() {
+      const id_pret = document.getElementById("id_pret").value;
+      const data = {
+        id_client: document.getElementById("id_client").value,
+        id_type_pret: document.getElementById("id_type_pret").value,
+        id_etablissement: document.getElementById("id_etablissement").value,
+        id_statut: document.getElementById("id_statut").value,
+        id_frequence: document.getElementById("id_frequence").value,
+        montant: document.getElementById("montant").value,
+        date_debut: document.getElementById("date_debut").value,
+        date_fin: document.getElementById("date_fin").value,
+        taux_applique: document.getElementById("taux_applique").value,
+        montant_restant: document.getElementById("montant_restant").value
+      };
+
+      if (id_pret) {
+        ajax("PUT", `/pret/${id_pret}`, JSON.stringify(data), (response) => {
+          alert(response.message);
+          resetFormPret();
+          chargerPrets();
+        });
+      } else {
+        ajax("POST", "/pret", JSON.stringify(data), (response) => {
+          alert(response.message);
+          resetFormPret();
+          chargerPrets();
+        });
+      }
+    }
+
+    function remplirFormulairePret(pret) {
+      document.getElementById("id_pret").value = pret.id_pret;
+      document.getElementById("id_client").value = pret.id_client;
+      // Remplir tous les autres champs...
+    }
+
+    function supprimerPret(id) {
+      if (confirm("Êtes-vous sûr de vouloir supprimer ce prêt ?")) {
+        ajax("DELETE", `/pret/${id}`, null, (response) => {
+          alert(response.message);
+          chargerPrets();
+        });
+      }
+    }
+
+    function resetFormPret() {
+      document.getElementById("id_pret").value = "";
+      // Réinitialiser tous les autres champs...
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      chargerDonneesSelects();
+      chargerPrets();
+    });
+  </script>
+</body>
+</html>
