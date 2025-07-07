@@ -1,0 +1,39 @@
+Fonctionnalite 1 : Ajout de fond dans l'établissement financier (EF) (Tina)
+- CRUD  
+- Table : 
+    EtablissementFinancier
+    TypeOperation (depot)
+    OperationFonds
+
+
+Fonctionnalite 2 : création type de prêt avec différent taux (Tina)
+- CRUD
+- Table :
+    TypePret
+
+
+Fonctionnalite 3 : gestion de prêt pour les clients (Joe)
+- CRUD pret 
+- Table :
+    pret (insert)
+    StatutPret 
+    Remboursement (insert automatique avec statut impaye)
+    
+    
+Remboursement : (remboursement)
+- Table :
+    StatutRemboursement
+    Remboursement
+Update montant restant (id_pret)
+
+
+Créer un tableau pour afficher les intêrets gagnés pour mois pour l'EF. 
+Mettre un filtre (mois et année début ) et mois/année fin
+
+Créer un graphique à partir du tableau 
+
+
+
+
+
+
