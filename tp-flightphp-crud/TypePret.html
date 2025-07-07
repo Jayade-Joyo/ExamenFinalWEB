@@ -198,7 +198,7 @@
 
   <script>
     // URL de base de votre API FlightPHP
-    const apiBase = "http://localhost/ExamenFinalWEB/tp-flightphp-crud/ws";
+    const apiBase = "http://localhost/ExamenFinalWEB/tp-flightphp-crud/ws"; // Vérifiez ce chemin !
 
     /**
      * Fonction utilitaire pour effectuer des requêtes AJAX.
@@ -214,12 +214,15 @@
       xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
       xhr.onreadystatechange = () => {
         if (xhr.readyState === 4) { // La requête est terminée
+          console.log("Statut HTTP:", xhr.status); // Affiche le statut HTTP
+          console.log("Réponse brute du serveur:", xhr.responseText); // Affiche la réponse brute
+
           if (xhr.status >= 200 && xhr.status < 300) { // Succès (2xx)
             try {
               callback(JSON.parse(xhr.responseText));
             } catch (e) {
               console.error("Erreur de parsing JSON:", e);
-              if (errorCallback) errorCallback({ error: "Réponse du serveur non valide." }, xhr.status);
+              if (errorCallback) errorCallback({ error: "Réponse du serveur non valide (non-JSON). " + xhr.responseText }, xhr.status);
             }
           } else { // Erreur (4xx ou 5xx)
             console.error(`Erreur AJAX: ${xhr.status} - ${xhr.statusText}`);
@@ -227,7 +230,8 @@
               const errorResponse = JSON.parse(xhr.responseText);
               if (errorCallback) errorCallback(errorResponse, xhr.status);
             } catch (e) {
-              if (errorCallback) errorCallback({ error: "Erreur serveur inconnue ou réponse non JSON." }, xhr.status);
+              // Si la réponse n'est pas JSON, affiche la réponse brute dans l'alerte
+              if (errorCallback) errorCallback({ error: "Erreur serveur inconnue ou réponse non JSON. Réponse brute: " + xhr.responseText }, xhr.status);
             }
           }
         }
@@ -288,8 +292,10 @@
         return;
       }
 
-      // Construction des données à envoyer (sans date_creation)
+      // Construction des données à envoyer
       const data = `nom_type=${nom_type}&taux_interet=${taux_interet}&duree_max=${duree_max}&montant_min=${montant_min}&montant_max=${montant_max}&actif=${actif}&description=${description}`;
+
+      console.log("Données envoyées pour la requête AJAX (TypePret):", data); // DEBUG: Affiche les données envoyées
 
       if (id_type_pret) {
         // Si un ID est présent, c'est une modification (PUT)

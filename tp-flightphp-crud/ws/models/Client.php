@@ -38,6 +38,7 @@ class Client {
      */
     public static function create($data) {
         $db = getDB();
+        // error_log("DEBUG: Client Model - Données reçues pour CREATE: " . print_r($data, true)); // DEBUG
         $stmt = $db->prepare("INSERT INTO Client (nom, prenom, date_naissance, adresse, telephone, email, profession, revenu_mensuel) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $data->nom,
@@ -49,6 +50,7 @@ class Client {
             $data->profession,
             $data->revenu_mensuel
         ]);
+        // error_log("DEBUG: Client Model - Requête INSERT exécutée. Last ID: " . $db->lastInsertId()); // DEBUG
         return $db->lastInsertId();
     }
 
@@ -59,6 +61,9 @@ class Client {
      */
     public static function update($id, $data) {
         $db = getDB();
+        // error_log("DEBUG: Client Model - Appel de update pour ID: " . $id); // DEBUG
+        // error_log("DEBUG: Client Model - Données pour la mise à jour: " . print_r($data, true)); // DEBUG
+
         // Préparer la requête de mise à jour avec toutes les colonnes pertinentes de votre schéma
         $stmt = $db->prepare("UPDATE Client SET nom = ?, prenom = ?, date_naissance = ?, adresse = ?, telephone = ?, email = ?, profession = ?, revenu_mensuel = ? WHERE id_client = ?");
         $stmt->execute([
@@ -72,6 +77,7 @@ class Client {
             $data->revenu_mensuel,
             $id
         ]);
+        // error_log("DEBUG: Client Model - Requête UPDATE exécutée."); // DEBUG
     }
 
     /**

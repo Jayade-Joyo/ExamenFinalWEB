@@ -2,14 +2,58 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestion des Prêts et Établissements Financiers</title>
   <style>
     body { font-family: sans-serif; padding: 20px; }
-    input, select, button { margin: 5px; padding: 5px; }
+    input, select, button { margin: 5px; padding: 5px; border-radius: 8px; border: 1px solid #ccc; }
+    button { background-color: #3498db; color: white; cursor: pointer; transition: background-color 0.3s ease; }
+    button:hover { background-color: #2980b9; }
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
     th { background-color: #f2f2f2; }
     .section-separator { margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; }
+
+    /* Styles pour les boutons d'action (crayon et poubelle) */
+    .action-button {
+      background-color: #2ecc71; /* Vert pour modifier */
+      margin: 0 3px;
+      padding: 8px 12px;
+      font-size: 0.9em;
+      box-shadow: none;
+    }
+
+    .action-button:hover {
+      background-color: #27ae60;
+      transform: none;
+    }
+
+    .delete-button {
+      background-color: #e74c3c; /* Rouge pour supprimer */
+    }
+
+    .delete-button:hover {
+      background-color: #c0392b;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      input[type="text"],
+      input[type="number"],
+      input[type="email"],
+      input[type="date"],
+      select {
+        flex: 1 1 100%; /* Un élément par ligne sur les petits écrans */
+      }
+      div {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      button {
+        width: 100%;
+        margin: 5px 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -24,6 +68,7 @@
       <input type="date" id="ef_date_creation" placeholder="Date Création">
       <input type="number" id="ef_solde" placeholder="Solde Initial" step="0.01">
       <button onclick="ajouterOuModifierEF()">Ajouter / Modifier Établissement</button>
+      <button onclick="resetFormEF()" style="background-color: #95a5a6;">Réinitialiser</button>
       <br>
       <input type="number" id="ef_add_funds_id" placeholder="ID EF pour Ajouter Fonds">
       <input type="number" id="ef_add_funds_montant" placeholder="Montant à Ajouter" step="0.01">
@@ -40,26 +85,46 @@
       <tbody></tbody>
     </table>
   </div>
-  <a href="TypePret.html">Pret</a>
-  <a href="client.php">Pret</a>
+  <!-- Liens vers les autres pages (si elles existent) -->
+  <a href="TypePret.html">Gestion des Types de Prêt</a><br>
+  <a href="client.html">Gestion des Clients</a><br>
 
 
   <script>
-    const apiBase = "http://localhost/ExamenFinalWEB/tp-flightphp-crud/ws";
+    // URL de base de votre API FlightPHP
+    const apiBase = "http://localhost/ExamenFinalWEB/tp-flightphp-crud/ws"; // Vérifiez ce chemin !
 
+    /**
+     * Fonction utilitaire pour effectuer des requêtes AJAX.
+     * @param {string} method - La méthode HTTP (GET, POST, PUT, DELETE).
+     * @param {string} url - L'URL de l'API (chemin relatif à apiBase).
+     * @param {string|null} data - Les données à envoyer (format 'clé=valeur&...'). Null pour les requêtes GET/DELETE sans corps.
+     * @param {function} callback - Fonction de rappel en cas de succès (reçoit les données JSON de la réponse).
+     * @param {function} errorCallback - Fonction de rappel en cas d'erreur (reçoit l'objet d'erreur JSON et le statut HTTP).
+     */
     function ajax(method, url, data, callback, errorCallback) {
       const xhr = new XMLHttpRequest();
       xhr.open(method, apiBase + url, true);
       xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
       xhr.onreadystatechange = () => {
         if (xhr.readyState === 4) {
+          console.log("Statut HTTP:", xhr.status); // DEBUG: Affiche le statut HTTP
+          console.log("Réponse brute du serveur:", xhr.responseText); // DEBUG: Affiche la réponse brute
+
           if (xhr.status >= 200 && xhr.status < 300) {
-            callback(JSON.parse(xhr.responseText));
+            try {
+              callback(JSON.parse(xhr.responseText));
+            } catch (e) {
+              console.error("Erreur de parsing JSON:", e);
+              if (errorCallback) errorCallback({ error: "Réponse du serveur non valide (non-JSON). " + xhr.responseText }, xhr.status);
+            }
           } else {
-            if (errorCallback) {
-              errorCallback(JSON.parse(xhr.responseText), xhr.status);
-            } else {
-              alert("Erreur: " + xhr.responseText);
+            console.error(`Erreur AJAX: ${xhr.status} - ${xhr.statusText}`);
+            try {
+              const errorResponse = JSON.parse(xhr.responseText);
+              if (errorCallback) errorCallback(errorResponse, xhr.status);
+            } catch (e) {
+              if (errorCallback) errorCallback({ error: "Erreur serveur inconnue ou réponse non JSON. Réponse brute: " + xhr.responseText }, xhr.status);
             }
           }
         }
@@ -67,118 +132,33 @@
       xhr.send(data);
     }
 
-    // Fonctions pour les prêts (existantes, renommées)
-    function chargerPrets() {
-      ajax("GET", "/prets", null, (data) => {
-        const tbody = document.querySelector("#table-prets tbody");
-        tbody.innerHTML = "";
-        data.forEach(p => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${p.id_pret}</td>
-            <td>${p.id_client}</td>
-            <td>${p.id_type}</td>
-            <td>${p.id_ef}</td>
-            <td>${p.montant}</td>
-            <td>${p.duree}</td>
-            <td>${p.date_debut}</td>
-            <td>${p.date_fin}</td>
-            <td>${p.frequence_remboursement}</td>
-            <td>${p.statut}</td>
-            <td>
-              <button onclick='remplirFormulairePret(${JSON.stringify(p)})'>✏️</button>
-              <button onclick='supprimerPret(${p.id_pret})'>🗑️</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-      });
-    }
-
-    function ajouterOuModifierPret() {
-      const id_pret = document.getElementById("id_pret").value;
-      const id_client = document.getElementById("id_client").value;
-      const id_type = document.getElementById("id_type").value;
-      const id_ef = document.getElementById("id_ef").value;
-      const montant = document.getElementById("montant").value;
-      const duree = document.getElementById("duree").value;
-      const date_debut = document.getElementById("date_debut").value;
-      const date_fin = document.getElementById("date_fin").value;
-      const frequence_remboursement = document.getElementById("frequence_remboursement").value;
-      const statut = document.getElementById("statut").value;
-
-      const data = `id_client=${id_client}&id_type=${id_type}&id_ef=${id_ef}&montant=${montant}&duree=${duree}&date_debut=${date_debut}&date_fin=${date_fin}&frequence_remboursement=${frequence_remboursement}&statut=${statut}`;
-
-      if (id_pret) {
-        ajax("PUT", `/prets/${id_pret}`, data, () => {
-          resetFormPret();
-          chargerPrets();
-        });
-      } else {
-        ajax("POST", "/prets", data, () => {
-          resetFormPret();
-          chargerPrets();
-        });
-      }
-    }
-
-    function remplirFormulairePret(p) {
-      document.getElementById("id_pret").value = p.id_pret;
-      document.getElementById("id_client").value = p.id_client;
-      document.getElementById("id_type").value = p.id_type;
-      document.getElementById("id_ef").value = p.id_ef;
-      document.getElementById("montant").value = p.montant;
-      document.getElementById("duree").value = p.duree;
-      document.getElementById("date_debut").value = p.date_debut;
-      document.getElementById("date_fin").value = p.date_fin;
-      document.getElementById("frequence_remboursement").value = p.frequence_remboursement;
-      document.getElementById("statut").value = p.statut;
-    }
-
-    function supprimerPret(id) {
-      if (confirm("Supprimer ce prêt ?")) {
-        ajax("DELETE", `/prets/${id}`, null, () => {
-          chargerPrets();
-        });
-      }
-    }
-
-    function resetFormPret() {
-      document.getElementById("id_pret").value = "";
-      document.getElementById("id_client").value = "";
-      document.getElementById("id_type").value = "";
-      document.getElementById("id_ef").value = "";
-      document.getElementById("montant").value = "";
-      document.getElementById("duree").value = "";
-      document.getElementById("date_debut").value = "";
-      document.getElementById("date_fin").value = "";
-      document.getElementById("frequence_remboursement").value = "mensuel";
-      document.getElementById("statut").value = "en cours";
-    }
-
     // Fonctions pour les Établissements Financiers
-
     function chargerEtablissements() {
       ajax("GET", "/etablissements", null, (data) => {
         const tbody = document.querySelector("#table-etablissements tbody");
         tbody.innerHTML = "";
         data.forEach(ef => {
           const tr = document.createElement("tr");
+          // Formater la date de création si elle existe
+          const dateCreation = ef.date_creation ? new Date(ef.date_creation).toLocaleDateString('fr-FR') : '';
+
           tr.innerHTML = `
             <td>${ef.id_etablissement}</td>
             <td>${ef.nom_etablissement}</td>
-            <td>${ef.adresse}</td>
-            <td>${ef.telephone}</td>
-            <td>${ef.email}</td>
-            <td>${ef.date_creation}</td>
+            <td>${ef.adresse || ''}</td>
+            <td>${ef.telephone || ''}</td>
+            <td>${ef.email || ''}</td>
+            <td>${dateCreation}</td>
             <td>${parseFloat(ef.solde).toFixed(2)}</td>
             <td>
-              <button onclick='remplirFormulaireEF(${JSON.stringify(ef)})'>✏️</button>
-              <button onclick='supprimerEF(${ef.id_etablissement})'>🗑️</button>
+              <button class="action-button" onclick='remplirFormulaireEF(${JSON.stringify(ef)})'>✏️</button>
+              <button class="action-button delete-button" onclick='supprimerEF(${ef.id_etablissement})'>🗑️</button>
             </td>
           `;
           tbody.appendChild(tr);
         });
+      }, (errorResponse) => {
+        alert("Impossible de charger les établissements financiers: " + (errorResponse.error || "Erreur inconnue"));
       });
     }
 
@@ -191,17 +171,35 @@
       const date_creation = document.getElementById("ef_date_creation").value;
       const solde = document.getElementById("ef_solde").value;
 
+      // Validation simple des champs requis
+      if (!nom_etablissement) {
+        alert("Veuillez entrer le nom de l'établissement.");
+        return;
+      }
+      if (!solde || isNaN(parseFloat(solde))) {
+        alert("Veuillez entrer un solde initial valide.");
+        return;
+      }
+
       const data = `nom_etablissement=${nom_etablissement}&adresse=${adresse}&telephone=${telephone}&email=${email}&date_creation=${date_creation}&solde=${solde}`;
 
+      console.log("Données envoyées pour la requête AJAX (EtablissementFinancier):", data); // DEBUG: Affiche les données envoyées
+
       if (id_etablissement) {
-        ajax("PUT", `/etablissements/${id_etablissement}`, data, () => {
+        ajax("PUT", `/etablissements/${id_etablissement}`, data, (response) => {
+          alert(response.message);
           resetFormEF();
           chargerEtablissements();
+        }, (errorResponse) => {
+          alert("Erreur lors de la modification de l'établissement: " + (errorResponse.error || JSON.stringify(errorResponse)));
         });
       } else {
-        ajax("POST", "/etablissements", data, () => {
+        ajax("POST", "/etablissements", data, (response) => {
+          alert(response.message);
           resetFormEF();
           chargerEtablissements();
+        }, (errorResponse) => {
+          alert("Erreur lors de l'ajout de l'établissement: " + (errorResponse.error || JSON.stringify(errorResponse)));
         });
       }
     }
@@ -212,14 +210,17 @@
       document.getElementById("ef_adresse").value = ef.adresse;
       document.getElementById("ef_telephone").value = ef.telephone;
       document.getElementById("ef_email").value = ef.email;
-      document.getElementById("ef_date_creation").value = ef.date_creation;
+      document.getElementById("ef_date_creation").value = ef.date_creation || ''; // Assurez-vous que la date est au format YYYY-MM-DD
       document.getElementById("ef_solde").value = parseFloat(ef.solde).toFixed(2);
     }
 
     function supprimerEF(id) {
       if (confirm("Supprimer cet établissement financier ?")) {
-        ajax("DELETE", `/etablissements/${id}`, null, () => {
+        ajax("DELETE", `/etablissements/${id}`, null, (response) => {
+          alert(response.message);
           chargerEtablissements();
+        }, (errorResponse) => {
+          alert("Erreur lors de la suppression de l'établissement: " + (errorResponse.error || JSON.stringify(errorResponse)));
         });
       }
     }
@@ -232,6 +233,9 @@
       document.getElementById("ef_email").value = "";
       document.getElementById("ef_date_creation").value = "";
       document.getElementById("ef_solde").value = "";
+      document.getElementById("ef_add_funds_id").value = "";
+      document.getElementById("ef_add_funds_montant").value = "";
+      document.getElementById("ef_add_funds_description").value = "";
     }
 
     function ajouterFondsEF() {
@@ -239,8 +243,8 @@
       const montant = document.getElementById("ef_add_funds_montant").value;
       const description = document.getElementById("ef_add_funds_description").value;
 
-      if (!id || !montant) {
-        alert("Veuillez entrer l'ID de l'établissement et le montant.");
+      if (!id || !montant || isNaN(parseFloat(montant)) || parseFloat(montant) <= 0) {
+        alert("Veuillez entrer l'ID de l'établissement et un montant valide et positif.");
         return;
       }
 
@@ -257,8 +261,8 @@
     }
 
     // Charger les données au chargement de la page
-    chargerPrets();
-    chargerEtablissements();
+    // chargerPrets(); // Cette fonction n'est pas définie dans le HTML fourni, si elle existe, décommentez-la.
+    document.addEventListener('DOMContentLoaded', chargerEtablissements); // Charger les établissements au démarrage
   </script>
 
 </body>

@@ -35,9 +35,9 @@ class TypePret {
      * @param object $data Les données du type de prêt (nom_type, taux_interet, duree_max, description, montant_min, montant_max, actif).
      * @return int L'ID du type de prêt nouvellement créé.
      */
-public static function create($data) {
+    public static function create($data) {
         $db = getDB();
-        error_log("DEBUG: TypePret Model - Données pour CREATE dans le modèle: " . print_r($data, true)); // Ligne de débogage
+        error_log("DEBUG: TypePret Model - Données reçues pour CREATE: " . print_r($data, true)); // DEBUG
         $stmt = $db->prepare("INSERT INTO TypePret (nom_type, taux_interet, duree_max, description, montant_min, montant_max, actif) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $data->nom_type,
@@ -48,12 +48,27 @@ public static function create($data) {
             $data->montant_max,
             $data->actif
         ]);
+        error_log("DEBUG: TypePret Model - Requête INSERT exécutée. Last ID: " . $db->lastInsertId()); // DEBUG
         return $db->lastInsertId();
     }
 
+    /**
+     * Met à jour un type de prêt existant.
+     * @param int $id L'ID du type de prêt à mettre à jour.
+     * @param object $data Les nouvelles données du type de prêt.
+     */
     public static function update($id, $data) {
         $db = getDB();
-        error_log("DEBUG: TypePret Model - Données pour UPDATE dans le modèle ID " . $id . ": " . print_r($data, true)); // Ligne de débogage
+        error_log("DEBUG: TypePret Model - Appel de update pour ID: " . $id); // DEBUG
+        error_log("DEBUG: TypePret Model - Données pour la mise à jour: " . print_r($data, true)); // DEBUG
+
+        // Vérification explicite des propriétés
+        error_log("DEBUG: TypePret Model - data->nom_type: " . (isset($data->nom_type) ? $data->nom_type : 'NON DÉFINI')); // DEBUG
+        error_log("DEBUG: TypePret Model - data->taux_interet: " . (isset($data->taux_interet) ? $data->taux_interet : 'NON DÉFINI')); // DEBUG
+        error_log("DEBUG: TypePret Model - data->duree_max: " . (isset($data->duree_max) ? $data->duree_max : 'NON DÉFINI')); // DEBUG
+
+
+        // Préparer la requête de mise à jour avec toutes les colonnes pertinentes de votre schéma
         $stmt = $db->prepare("UPDATE TypePret SET nom_type = ?, taux_interet = ?, duree_max = ?, description = ?, montant_min = ?, montant_max = ?, actif = ? WHERE id_type_pret = ?");
         $stmt->execute([
             $data->nom_type,
@@ -65,6 +80,7 @@ public static function create($data) {
             $data->actif,
             $id
         ]);
+        error_log("DEBUG: TypePret Model - Requête UPDATE exécutée."); // DEBUG
     }
 
     /**

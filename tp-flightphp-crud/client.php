@@ -43,6 +43,7 @@
     input[type="number"],
     input[type="email"],
     input[type="date"],
+    input[type="datetime-local"], /* Ajout du style pour datetime-local */
     select {
       flex: 1 1 calc(33% - 20px); /* 3 éléments par ligne sur grand écran, avec espace */
       padding: 12px;
@@ -52,6 +53,12 @@
       box-sizing: border-box; /* Inclut le padding et la bordure dans la largeur totale */
       font-size: 1em;
       min-width: 150px; /* Largeur minimale pour les petits écrans */
+    }
+
+    /* Styles pour les champs en lecture seule */
+    input[readonly] {
+      background-color: #e9ecef;
+      cursor: not-allowed;
     }
 
     /* Styles pour les boutons */
@@ -135,6 +142,7 @@
       input[type="number"],
       input[type="email"],
       input[type="date"],
+      input[type="datetime-local"], /* Ajout du style pour datetime-local */
       select {
         flex: 1 1 100%; /* Un élément par ligne sur les petits écrans */
       }
@@ -166,6 +174,8 @@
     <input type="email" id="client_email" placeholder="Email">
     <input type="text" id="client_profession" placeholder="Profession">
     <input type="number" id="client_revenu_mensuel" placeholder="Revenu Mensuel" step="0.01">
+    <!-- Nouveau champ pour la date d'inscription, en lecture seule -->
+    <input type="datetime-local" id="client_date_inscription" placeholder="Date d'Inscription" readonly>
 
     <!-- Boutons pour ajouter/modifier et réinitialiser le formulaire -->
     <button onclick="ajouterOuModifierClient()">Ajouter / Modifier Client</button>
@@ -196,7 +206,7 @@
 
   <script>
     // URL de base de votre API FlightPHP
-    const apiBase = "http://localhost/ExamenFinalWEB/tp-flightphp-crud/ws";
+    const apiBase = "http://localhost/ExamenFinalWEB/tp-flightphp-crud/ws"; // Vérifiez ce chemin !
 
     /**
      * Fonction utilitaire pour effectuer des requêtes AJAX.
@@ -288,6 +298,7 @@
       const email = document.getElementById("client_email").value;
       const profession = document.getElementById("client_profession").value;
       const revenu_mensuel = document.getElementById("client_revenu_mensuel").value;
+      // date_inscription n'est pas envoyée car elle est gérée par la DB
 
       // Validation simple des champs requis
       if (!nom || !prenom) {
@@ -297,6 +308,8 @@
 
       // Construction des données à envoyer
       const data = `nom=${nom}&prenom=${prenom}&date_naissance=${date_naissance}&adresse=${adresse}&telephone=${telephone}&email=${email}&profession=${profession}&revenu_mensuel=${revenu_mensuel}`;
+
+      console.log("Données envoyées pour la requête AJAX:", data); // DEBUG: Affiche les données envoyées
 
       if (id_client) {
         // Si un ID est présent, c'est une modification (PUT)
@@ -333,6 +346,20 @@
       document.getElementById("client_email").value = client.email || '';
       document.getElementById("client_profession").value = client.profession || '';
       document.getElementById("client_revenu_mensuel").value = parseFloat(client.revenu_mensuel).toFixed(2);
+
+      // Remplir le champ de date d'inscription (en lecture seule)
+      if (client.date_inscription) {
+        // Convertir la date de la DB (DATETIME) au format attendu par input type="datetime-local" (YYYY-MM-DDThh:mm)
+        const dateObj = new Date(client.date_inscription);
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const hours = String(dateObj.getHours()).padStart(2, '0');
+        const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+        document.getElementById("client_date_inscription").value = `${year}-${month}-${day}T${hours}:${minutes}`;
+      } else {
+        document.getElementById("client_date_inscription").value = '';
+      }
     }
 
     /**
@@ -364,6 +391,7 @@
       document.getElementById("client_email").value = "";
       document.getElementById("client_profession").value = "";
       document.getElementById("client_revenu_mensuel").value = "";
+      document.getElementById("client_date_inscription").value = ""; // Réinitialiser aussi le champ de date d'inscription
     }
 
     // Charger les données des clients au chargement initial de la page
