@@ -181,8 +181,10 @@
 </select>
     <input type="number" id="montant" placeholder="Montant" step="0.01">
     <input type="date" id="date_debut"step="0.01">
-    <input type="date" name="data_fin" id="data_fin">
+    <input type="date" name="date_fin" id="date_fin">
     <input type="date"  id="date_creation">
+    <input type="date" id="date_fin"> <!-- Corriger le nom -->
+<input type="number" id="taux_applique" placeholder="Taux appliqué" step="0.01"> <!-- Ajouter ce champ -->
 
     <button onclick="ajouterOuModifierTypePret()">Ajouter / Modifier Type de Prêt</button>
     <button onclick="resetFormTypePret()" style="background-color: #95a5a6;">Réinitialiser</button>
@@ -224,62 +226,81 @@
       // - Les fréquences
     }
 
-    function ajax(method, url, data, callback, errorCallback) {
-      const xhr = new XMLHttpRequest();
-      xhr.open(method, apiBase + url, true);
-      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4) { // La requête est terminée
-          if (xhr.status >= 200 && xhr.status < 300) { // Succès (2xx)
-            try {
-              callback(JSON.parse(xhr.responseText));
-            } catch (e) {
-              console.error("Erreur de parsing JSON:", e);
-              if (errorCallback) errorCallback({ error: "Réponse du serveur non valide." }, xhr.status);
+function ajax(method, url, data, callback, errorCallback) {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, apiBase + url, true);
+    xhr.setRequestHeader("Content-Type", "application/json"); // Changer ici
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                    callback(JSON.parse(xhr.responseText));
+                } catch (e) {
+                    console.error("Erreur parsing JSON:", e);
+                    if (errorCallback) errorCallback({ error: "Réponse serveur invalide" }, xhr.status);
+                }
+            } else {
+                // Gestion erreur...
+                console.error("Erreur AJAX:", xhr.status, xhr.statusText);
+                if (errorCallback) {
+                    try {
+                        const errorResponse = JSON.parse(xhr.responseText);
+                        errorCallback(errorResponse, xhr.status);
+                    } catch (e) {
+                        errorCallback({ error: "Erreur serveur inconnue" }, xhr.status);
+                    }
+                } else {
+                    alert(`Erreur ${xhr.status}: ${xhr.statusText}`);
+                }
             }
-          } else { // Erreur (4xx ou 5xx)
-            console.error(`Erreur AJAX: ${xhr.status} - ${xhr.statusText}`);
-            try {
-              const errorResponse = JSON.parse(xhr.responseText);
-              if (errorCallback) errorCallback(errorResponse, xhr.status);
-            } catch (e) {
-              if (errorCallback) errorCallback({ error: "Erreur serveur inconnue ou réponse non JSON." }, xhr.status);
-            }
-          }
         }
-      };
-      xhr.send(data);
-    }
+    };
+    xhr.send(JSON.stringify(data)); // Envoyer les données en JSON
+}
 
-    function chargerPrets() {
-      ajax("GET", "/pret", null, (data) => {
+async function chargerPret() {
+    try {
+        const response = await fetch(`${apiBase}/pret`);
+        
+        // Vérifiez d'abord le content-type
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            throw new Error(`Réponse non-JSON: ${text.substring(0, 100)}...`);
+        }
+
+        const prets = await response.json();
+        
         const tbody = document.querySelector("#table-types-pret tbody");
-        tbody.innerHTML = ""; // Réinitialiser le contenu du tableau
-        data.forEach(pret => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${pret.id_pret}</td>
-            <td>${pret.tp_nom_type}</td>
-            <td>${pret.id_type_pret}</td> <!-- A remplacer par le libellé du type -->
-            <td>${pret.id_etablissement}</td> <!-- A remplacer par le nom de l'établissement -->
-            <td>${pret.id_statut}</td> <!-- A remplacer par le libellé du statut -->
-            <td>${pret.id_frequence}</td> <!-- A remplacer par le libellé de la fréquence -->
-            <td>${parseFloat(pret.montant).toFixed(2)}</td>
-            <td>${pret.date_debut}</td>
-            <td>${pret.date_fin}</td>
-            <td>${parseFloat(pret.montant_restant).toFixed(2)}</td>
-            <td>${pret.date_creation}</td>
-            <td>
-              <button class="action-button" onclick='remplirFormulairePret(${JSON.stringify(pret)})'>✏️</button>
-              <button class="action-button delete-button" onclick='supprimerPret(${pret.id_pret})'>🗑️</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
+        tbody.innerHTML = "";
+        
+        prets.forEach(pret => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${pret.id_pret}</td>
+                <td>${pret.id_client}</td>
+                <td>${pret.id_type_pret}</td>
+                <td>${pret.id_etablissement}</td>
+                <td>${pret.id_statut}</td>
+                <td>${pret.id_frequence}</td>
+                <td>${parseFloat(pret.montant).toFixed(2)} €</td>
+                <td>${pret.date_debut}</td>
+                <td>${pret.date_fin}</td>
+                <td>${parseFloat(pret.montant_restant).toFixed(2)} €</td>
+                <td>${new Date(pret.date_creation).toLocaleString()}</td>
+                <td>
+                    <button class="action-button" onclick='remplirFormulairePret(${JSON.stringify(pret)})'>✏️</button>
+                    <button class="action-button delete-button" onclick='supprimerPret(${pret.id_pret})'>🗑️</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
         });
-      }, (error, status) => {
-        console.error("Erreur lors du chargement des prêts:", error, "Statut:", status);
-      });
+    } catch (error) {
+        console.error("Erreur détaillée:", error);
+        alert(`Erreur: ${error.message}`);
     }
+}
+
 
     function ajouterOuModifierTypePret() {
       const id_pret = document.getElementById("id_pret").value;
@@ -351,6 +372,7 @@
     { id: 3, libelle: 'Annuel' }
   ]
 };
+
 function remplirSelect(selectId, donnees, valeurAttr, texteAttr) {
   const select = document.getElementById(selectId);
   
@@ -386,6 +408,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Fréquences
   remplirSelect('id_frequence', donneesSelects.frequences, 'id', 'libelle');
 });
+
 function getSelectedItemData(selectId) {
   const select = document.getElementById(selectId);
   const selectedOption = select.options[select.selectedIndex];
@@ -397,6 +420,7 @@ document.getElementById('id_type_pret').addEventListener('change', function() {
   const typePretSelectionne = getSelectedItemData('id_type_pret');
   console.log('Type de prêt sélectionné:', typePretSelectionne);
 });
+
 function remplirSelect(selectId, donnees, valeurAttr, texteAttr) {
   try {
     const select = document.getElementById(selectId);
@@ -499,7 +523,7 @@ function remplirSelect(selectId, donnees, valeurAttr, texteAttr) {
 
     document.addEventListener('DOMContentLoaded', () => {
       chargerDonneesSelects();
-      chargerPrets();
+      chargerPret();
     });
   </script>
 </body>

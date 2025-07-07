@@ -1,6 +1,6 @@
 <?php
 // Inclure le modèle TypePret
-require_once __DIR__ . '/../models/TypePret.php';
+require_once __DIR__ . '/../models/Pret.php';
 
 /**
  * Classe TypePretController
@@ -12,8 +12,23 @@ class PretController {
      * Récupère et renvoie tous les types de prêt au format JSON.
      */
     public static function getAll() {
-        $pret = Pret::getAll();
-        Flight::json($pret);
+        $db = getDB();
+        // Requête avec jointures pour avoir les noms complets
+        $stmt = $db->query("
+            SELECT p.*, 
+                   c.nom as client_nom, c.prenom as client_prenom,
+                   tp.nom_type as type_pret_nom,
+                   e.nom_etablissement as etablissement_nom,
+                   s.libelle as statut_libelle,
+                   f.libelle as frequence_libelle
+            FROM Pret p
+            LEFT JOIN Client c ON p.id_client = c.id_client
+            LEFT JOIN TypePret tp ON p.id_type_pret = tp.id_type_pret
+            LEFT JOIN EtablissementFinancier e ON p.id_etablissement = e.id_etablissement
+            LEFT JOIN StatutPret s ON p.id_statut = s.id_statut
+            LEFT JOIN FrequencePaiement f ON p.id_frequence = f.id_frequence
+        ");
+        Flight::json($stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 
     /**
@@ -30,9 +45,8 @@ class PretController {
      * Renvoie un message de succès et l'ID du nouvel élément au format JSON.
      */
     public static function create() {
-        $data = Flight::request()->data;
+        $data = Flight::request()->data->getData();
         error_log("DEBUG: PretController - Données reçues pour CREATE: " . print_r($data, true)); // Ligne de débogage
-        $data->actif = isset($data->actif) ? filter_var($data->actif, FILTER_VALIDATE_BOOLEAN) : true;
         $id = Pret::create($data);
         Flight::json(['message' => ' prêt ajouté', 'id' => $id]);
     }
