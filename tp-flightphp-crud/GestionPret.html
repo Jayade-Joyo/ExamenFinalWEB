@@ -224,6 +224,103 @@
       // - Les fréquences
     }
 
+    function ajax(method, url, data, callback, errorCallback) {
+      const xhr = new XMLHttpRequest();
+      xhr.open(method, apiBase + url, true);
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) { // La requête est terminée
+          if (xhr.status >= 200 && xhr.status < 300) { // Succès (2xx)
+            try {
+              callback(JSON.parse(xhr.responseText));
+            } catch (e) {
+              console.error("Erreur de parsing JSON:", e);
+              if (errorCallback) errorCallback({ error: "Réponse du serveur non valide." }, xhr.status);
+            }
+          } else { // Erreur (4xx ou 5xx)
+            console.error(`Erreur AJAX: ${xhr.status} - ${xhr.statusText}`);
+            try {
+              const errorResponse = JSON.parse(xhr.responseText);
+              if (errorCallback) errorCallback(errorResponse, xhr.status);
+            } catch (e) {
+              if (errorCallback) errorCallback({ error: "Erreur serveur inconnue ou réponse non JSON." }, xhr.status);
+            }
+          }
+        }
+      };
+      xhr.send(data);
+    }
+
+    function chargerPrets() {
+      ajax("GET", "/pret", null, (data) => {
+        const tbody = document.querySelector("#table-types-pret tbody");
+        tbody.innerHTML = ""; // Réinitialiser le contenu du tableau
+        data.forEach(pret => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${pret.id_pret}</td>
+            <td>${pret.tp_nom_type}</td>
+            <td>${pret.id_type_pret}</td> <!-- A remplacer par le libellé du type -->
+            <td>${pret.id_etablissement}</td> <!-- A remplacer par le nom de l'établissement -->
+            <td>${pret.id_statut}</td> <!-- A remplacer par le libellé du statut -->
+            <td>${pret.id_frequence}</td> <!-- A remplacer par le libellé de la fréquence -->
+            <td>${parseFloat(pret.montant).toFixed(2)}</td>
+            <td>${pret.date_debut}</td>
+            <td>${pret.date_fin}</td>
+            <td>${parseFloat(pret.montant_restant).toFixed(2)}</td>
+            <td>${pret.date_creation}</td>
+            <td>
+              <button class="action-button" onclick='remplirFormulairePret(${JSON.stringify(pret)})'>✏️</button>
+              <button class="action-button delete-button" onclick='supprimerPret(${pret.id_pret})'>🗑️</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }, (error, status) => {
+        console.error("Erreur lors du chargement des prêts:", error, "Statut:", status);
+      });
+    }
+
+    function ajouterOuModifierTypePret() {
+      const id_pret = document.getElementById("id_pret").value;
+      const data = {
+        tp_nom_type: document.getElementById("tp_nom_type").value,
+        id_client: document.getElementById("id_client").value,
+        id_type_pret: document.getElementById("id_type_pret").value,
+        id_etablissement: document.getElementById("id_etablissement").value,
+        id_statut: document.getElementById("id_statut").value,
+        id_frequence: document.getElementById("id_frequence").value,
+        montant: parseFloat(document.getElementById("montant").value).toFixed(2),
+        date_debut: document.getElementById("date_debut").value,
+        date_fin: document.getElementById("date_fin").value,
+        montant_restant: parseFloat(document.getElementById("montant_restant").value).toFixed(2),
+        date_creation: new Date().toISOString().split('T')[0] // Date actuelle au format YYYY-MM-DD
+      };
+
+      if (id_pret) {
+        ajax("PUT", `/pret/${id_pret}`, JSON.stringify(data), (response) => {
+          alert(response.message);
+          resetFormTypePret();
+          chargerPrets();
+        }, (error, status) => {
+          console.error("Erreur lors de la modification du prêt:", error, "Statut:", status);
+          alert(`Erreur lors de la modification du prêt: ${error.message}`);
+        });
+      } else {
+        ajax("POST", "/pret", JSON.stringify(data), (response) => {
+          alert(response.message);
+          resetFormTypePret();
+          chargerPrets();
+        }, (error, status) => {
+          console.error("Erreur lors de l'ajout du prêt:", error, "Statut:", status);
+          alert(`Erreur lors de l'ajout du prêt: ${error.message}`);
+        });
+      }
+    }
+
+
+
+
     const donneesSelects = {
   clients: [
     { id: 1, nom_complet: 'Jean Dupont' },
@@ -328,29 +425,6 @@ function remplirSelect(selectId, donnees, valeurAttr, texteAttr) {
     console.error(`Erreur lors du remplissage de ${selectId}:`, error);
   }
 }
-    function chargerPret() {
-      ajax("GET", "/pret", null, (data) => {
-        const tbody = document.querySelector("#table-prets tbody");
-        tbody.innerHTML = "";
-        data.forEach(pret => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${pret.id_pret}</td>
-            <td>${pret.id_client}</td> <!-- A remplacer par le nom du client -->
-            <td>${pret.id_type_pret}</td> <!-- A remplacer par le libellé du type -->
-            <td>${parseFloat(pret.montant).toFixed(2)}</td>
-            <td>${pret.date_debut}</td>
-            <td>${pret.date_fin}</td>
-            <td>${pret.id_statut}</td> <!-- A remplacer par le libellé du statut -->
-            <td>
-              <button class="action-button" onclick='remplirFormulairePret(${JSON.stringify(pret)})'>✏️</button>
-              <button class="action-button delete-button" onclick='supprimerPret(${pret.id_pret})'>🗑️</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-      });
-    }
 
     function ajouterOuModifierPret() {
       const id_pret = document.getElementById("id_pret").value;
@@ -385,7 +459,17 @@ function remplirSelect(selectId, donnees, valeurAttr, texteAttr) {
     function remplirFormulairePret(pret) {
       document.getElementById("id_pret").value = pret.id_pret;
       document.getElementById("id_client").value = pret.id_client;
-      // Remplir tous les autres champs...
+      document.getElementById("id_type_pret").value = pret.id_type_pret;
+      document.getElementById("id_etablissement").value = pret.id_etablissement;  
+      document.getElementById("id_statut").value = pret.id_statut;
+      document.getElementById("id_frequence").value = pret.id_frequence;
+      document.getElementById("montant").value = pret.montant;
+      document.getElementById("date_debut").value = pret.date_debut;
+      document.getElementById("date_fin").value = pret.date_fin;
+      document.getElementById("taux_applique").value = pret.taux_applique;
+      document.getElementById("montant_restant").value = pret.montant_restant;
+      document.getElementById("date_creation").value = pret.date_creation;
+      // Vous pouvez ajouter d'autres champs si nécessaire
     }
 
     function supprimerPret(id) {
@@ -399,7 +483,18 @@ function remplirSelect(selectId, donnees, valeurAttr, texteAttr) {
 
     function resetFormPret() {
       document.getElementById("id_pret").value = "";
-      // Réinitialiser tous les autres champs...
+      document.getElementById("id_client").value = "";
+      document.getElementById("id_type_pret").value = "";
+      document.getElementById("id_etablissement").value = "";
+      document.getElementById("id_statut").value = "";
+      document.getElementById("id_frequence").value = "";
+      document.getElementById("montant").value = "";
+      document.getElementById("date_debut").value = "";
+      document.getElementById("date_fin").value = "";
+      document.getElementById("taux_applique").value = "";
+      document.getElementById("montant_restant").value = "";
+      document.getElementById("date_creation").value = "";
+      // Réinitialiser les sélecteurs
     }
 
     document.addEventListener('DOMContentLoaded', () => {
