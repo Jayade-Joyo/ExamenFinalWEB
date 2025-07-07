@@ -160,26 +160,25 @@
     <!-- Champs de saisie pour les informations du type de prêt -->
     <input type="text" id="tp_nom_type" placeholder="Nom du Type de Prêt" required>
     
-    <select id="id_client">
-      <option value=""></option>
-    </select>
-    
-    <select id="id_type_pret">
-      <option value=""></option>
-    </select>
+<select id="id_client" required>
+  <option value="">Sélectionnez un client</option>
+</select>
 
-    <select id="id_etablissement">
-      <option value=""></option>
-    </select>
+<select id="id_type_pret" required>
+  <option value="">Sélectionnez un type de prêt</option>
+</select>
 
-    <select id="id_statu">
-      <option value=""></option>
-    </select>
+<select id="id_etablissement" required>
+  <option value="">Sélectionnez un établissement</option>
+</select>
 
-        <select id="id_frequence">
-      <option value=""></option>
-    </select>
-    
+<select id="id_statut" required>
+  <option value="">Sélectionnez un statut</option>
+</select>
+
+<select id="id_frequence" required>
+  <option value="">Sélectionnez une fréquence</option>
+</select>
     <input type="number" id="montant" placeholder="Montant" step="0.01">
     <input type="date" id="date_debut"step="0.01">
     <input type="date" name="data_fin" id="data_fin">
@@ -225,7 +224,111 @@
       // - Les fréquences
     }
 
-    function chargerPrets() {
+    const donneesSelects = {
+  clients: [
+    { id: 1, nom_complet: 'Jean Dupont' },
+    { id: 2, nom_complet: 'Sophie Martin' },
+    { id: 3, nom_complet: 'Pierre Bernard' },
+    { id: 4, nom_complet: 'Marie Petit' }
+  ],
+  typesPret: [
+    { id: 1, libelle: 'Prêt Personnel (3.5%)' },
+    { id: 2, libelle: 'Prêt Immobilier (2.2%)' },
+    { id: 3, libelle: 'Prêt Étudiant (1.9%)' },
+    { id: 4, libelle: 'Crédit Renouvelable (5.5%)' }
+  ],
+  etablissements: [
+    { id: 1, nom: 'Banque Nationale' },
+    { id: 2, nom: 'Caisse d\'Epargne Régionale' },
+    { id: 3, nom: 'Crédit Municipal' }
+  ],
+  statuts: [
+    { id: 1, libelle: 'En attente' },
+    { id: 2, libelle: 'Approuvé' },
+    { id: 3, libelle: 'Rejeté' },
+    { id: 4, libelle: 'Remboursé' }
+  ],
+  frequences: [
+    { id: 1, libelle: 'Mensuel' },
+    { id: 2, libelle: 'Trimestriel' },
+    { id: 3, libelle: 'Annuel' }
+  ]
+};
+function remplirSelect(selectId, donnees, valeurAttr, texteAttr) {
+  const select = document.getElementById(selectId);
+  
+  // Option vide par défaut
+  const optionDefaut = document.createElement('option');
+  optionDefaut.value = '';
+  optionDefaut.textContent = `Sélectionnez...`;
+  select.appendChild(optionDefaut);
+  
+  // Ajout des options
+  donnees.forEach(item => {
+    const option = document.createElement('option');
+    option.value = item[valeurAttr];
+    option.textContent = item[texteAttr];
+    option.dataset.originalData = JSON.stringify(item); // Stockage des données complètes
+    select.appendChild(option);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Clients
+  remplirSelect('id_client', donneesSelects.clients, 'id', 'nom_complet');
+  
+  // Types de prêt
+  remplirSelect('id_type_pret', donneesSelects.typesPret, 'id', 'libelle');
+  
+  // Établissements
+  remplirSelect('id_etablissement', donneesSelects.etablissements, 'id', 'nom');
+  
+  // Statuts
+  remplirSelect('id_statut', donneesSelects.statuts, 'id', 'libelle');
+  
+  // Fréquences
+  remplirSelect('id_frequence', donneesSelects.frequences, 'id', 'libelle');
+});
+function getSelectedItemData(selectId) {
+  const select = document.getElementById(selectId);
+  const selectedOption = select.options[select.selectedIndex];
+  return selectedOption.value ? JSON.parse(selectedOption.dataset.originalData) : null;
+}
+
+// Exemple d'utilisation :
+document.getElementById('id_type_pret').addEventListener('change', function() {
+  const typePretSelectionne = getSelectedItemData('id_type_pret');
+  console.log('Type de prêt sélectionné:', typePretSelectionne);
+});
+function remplirSelect(selectId, donnees, valeurAttr, texteAttr) {
+  try {
+    const select = document.getElementById(selectId);
+    if (!select) throw new Error(`Select #${selectId} introuvable`);
+    
+    select.innerHTML = ''; // Réinitialisation
+    
+    // Option par défaut
+    const optionDefaut = new Option('Sélectionnez...', '');
+    select.add(optionDefaut);
+    
+    // Validation des données
+    if (!Array.isArray(donnees)) {
+      console.warn(`Données invalides pour ${selectId}`, donnees);
+      return;
+    }
+    
+    // Ajout des options
+    donnees.forEach(item => {
+      const option = new Option(item[texteAttr], item[valeurAttr]);
+      option.dataset.originalData = JSON.stringify(item);
+      select.add(option);
+    });
+    
+  } catch (error) {
+    console.error(`Erreur lors du remplissage de ${selectId}:`, error);
+  }
+}
+    function chargerPret() {
       ajax("GET", "/pret", null, (data) => {
         const tbody = document.querySelector("#table-prets tbody");
         tbody.innerHTML = "";
