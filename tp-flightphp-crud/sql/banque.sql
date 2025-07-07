@@ -136,19 +136,33 @@ INSERT INTO StatutRemboursement (code_statut, libelle) VALUES
 ('EN_RETARD', 'Paiement en retard'),
 ('IMPAYE', 'Paiement impayé');
 
--- Table des remboursements
+
+
 CREATE TABLE Remboursement (
     id_remboursement INT PRIMARY KEY AUTO_INCREMENT,
     id_pret INT NOT NULL,
     id_statut INT NOT NULL DEFAULT 1,
-    montant DECIMAL(15, 2) NOT NULL,
+    
+    -- Champs de l'image
+    base DECIMAL(15, 2) NOT NULL COMMENT 'Capital restant avant ce remboursement',
+    interet DECIMAL(15, 2) NOT NULL COMMENT 'Montant des intérêts payés',
+    amortissement DECIMAL(15, 2) NOT NULL COMMENT 'Part du capital remboursé',
+    annuite DECIMAL(15, 2) NOT NULL COMMENT 'Montant total du paiement (intérêt + amortissement)',
+    val_fin DECIMAL(15, 2) NOT NULL COMMENT 'Capital restant après ce remboursement',
+    
+    -- Champs temporels existants conservés
     date_remboursement DATETIME DEFAULT CURRENT_TIMESTAMP,
     date_echeance DATE NOT NULL,
-    mois TINYINT NOT NULL,
-    annee SMALLINT NOT NULL,
+    mois TINYINT NOT NULL COMMENT 'Mois du remboursement (1-12)',
+    annee SMALLINT NOT NULL COMMENT 'Année du remboursement (4 chiffres)',
+    
+    -- Clés étrangères
     FOREIGN KEY (id_pret) REFERENCES Pret(id_pret),
     FOREIGN KEY (id_statut) REFERENCES StatutRemboursement(id_statut),
-    INDEX idx_mois_annee (mois, annee)  -- Index pour les requêtes par période
+    
+    -- Index
+    INDEX idx_mois_annee (mois, annee),
+    INDEX idx_pret (id_pret)  -- Pour les requêtes par prêt
 );
 
 -- Table d'historique des taux
