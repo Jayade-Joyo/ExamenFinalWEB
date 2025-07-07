@@ -186,7 +186,7 @@ INSERT INTO TypePret (nom_type, description, taux_interet, duree_max, montant_mi
 ('Prêt Personnel', 'Prêt pour besoins personnels', 3.50, 60, 1000.00, 50000.00, TRUE),
 ('Prêt Immobilier', 'Achat ou travaux immobiliers', 2.20, 240, 50000.00, 500000.00, TRUE),
 ('Prêt Étudiant', 'Financement des études', 1.90, 84, 500.00, 20000.00, TRUE),
-('Crédit Renouvelable', 'Réserve d\'argent disponible', 5.50, 36, 500.00, 10000.00, FALSE);
+('Crédit Renouvelable', 'Réserve d argent disponible', 5.50, 36, 500.00, 10000.00, FALSE);
 
 -- Insertion dans Pret
 INSERT INTO Pret (id_client, id_type_pret, id_etablissement, id_statut, id_frequence, montant, date_debut, date_fin, taux_applique, montant_restant) VALUES
