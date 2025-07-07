@@ -1,123 +1,147 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Gestion des étudiants</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; }
-    input, button { margin: 5px; padding: 5px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f2f2f2; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des établissements financiers</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .form-container { margin-bottom: 20px; }
+        .form-container input, .form-container button { margin: 5px; }
+    </style>
 </head>
 <body>
+    <h2>Gestion des établissements financiers</h2>
 
-  <h1>Gestion des étudiants</h1>
+    <div class="form-container">
+        <h3>Ajouter / Modifier</h3>
+        <input type="hidden" id="id_etablissement">
+        <input type="text" id="nom_etablissement" placeholder="Nom de l'établissement">
+        <input type="text" id="adresse" placeholder="Adresse">
+        <input type="text" id="telephone" placeholder="Téléphone">
+        <input type="email" id="email" placeholder="Email">
+        <input type="date" id="date_creation" placeholder="Date de création">
+        <input type="number" id="solde" placeholder="Solde" step="0.01">
+        <input type="number" id="montant_depot" placeholder="Montant dépôt" step="0.01">
+        <button onclick="ajouterOuModifier()">Ajouter / Modifier</button>
+    </div>
 
-  <div>
-    <input type="hidden" id="id">
-    <input type="text" id="nom" placeholder="Nom">
-    <input type="text" id="prenom" placeholder="Prénom">
-    <input type="email" id="email" placeholder="Email">
-    <input type="number" id="age" placeholder="Âge">
-    <button onclick="ajouterOuModifier()">Ajouter / Modifier</button>
-  </div>
+    <table id="etablissements-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Adresse</th>
+                <th>Téléphone</th>
+                <th>Email</th>
+                <th>Date création</th>
+                <th>Solde</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be populated here -->
+        </tbody>
+    </table>
 
-  <table id="table-etudiants">
-    <thead>
-      <tr>
-        <th>ID</th><th>Nom</th><th>Prénom</th><th>Email</th><th>Âge</th><th>Actions</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    <script>
+        const apiBase = "http://localhost/examenfinalWeb/tp-flightphp-crud/ws";
 
-  <script>
-    const apiBase = "http://localhost/examenfinalWeb/tp-flightphp-crud/ws";
-
-    function ajax(method, url, data, callback) {
-      const xhr = new XMLHttpRequest();
-      xhr.open(method, apiBase + url, true);
-      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          callback(JSON.parse(xhr.responseText));
+        function ajax(method, url, data, callback) {
+            const xhr = new XMLHttpRequest();
+            xhr.open(method, apiBase + url, true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    callback(JSON.parse(xhr.responseText));
+                }
+            };
+            xhr.send(data);
         }
-      };
-      xhr.send(data);
-    }
 
-    function chargerEtudiants() {
-      ajax("GET", "/etudiants", null, (data) => {
-        const tbody = document.querySelector("#table-etudiants tbody");
-        tbody.innerHTML = "";
-        data.forEach(e => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${e.id}</td>
-            <td>${e.nom}</td>
-            <td>${e.prenom}</td>
-            <td>${e.email}</td>
-            <td>${e.age}</td>
-            <td>
-              <button onclick='remplirFormulaire(${JSON.stringify(e)})'>✏️</button>
-              <button onclick='supprimerEtudiant(${e.id})'>🗑️</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-      });
-    }
+        function chargerEtablissements() {
+            ajax("GET", "/etablissements", null, (data) => {
+                const tbody = document.querySelector("#etablissements-table tbody");
+                tbody.innerHTML = "";
+                data.forEach(e => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${e.id_etablissement}</td>
+                        <td>${e.nom_etablissement}</td>
+                        <td>${e.adresse || ''}</td>
+                        <td>${e.telephone || ''}</td>
+                        <td>${e.email || ''}</td>
+                        <td>${e.date_creation || ''}</td>
+                        <td>${e.solde}</td>
+                        <td>
+                            <button onclick='remplirFormulaire(${JSON.stringify(e)})'>✏️</button>
+                            <button onclick='supprimerEtablissement(${e.id_etablissement})'>🗑️</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            });
+        }
 
-    function ajouterOuModifier() {
-      const id = document.getElementById("id").value;
-      const nom = document.getElementById("nom").value;
-      const prenom = document.getElementById("prenom").value;
-      const email = document.getElementById("email").value;
-      const age = document.getElementById("age").value;
+        function ajouterOuModifier() {
+            const id = document.getElementById("id_etablissement").value;
+            const nom_etablissement = document.getElementById("nom_etablissement").value;
+            const adresse = document.getElementById("adresse").value;
+            const telephone = document.getElementById("telephone").value;
+            const email = document.getElementById("email").value;
+            const date_creation = document.getElementById("date_creation").value;
+            const solde = document.getElementById("solde").value;
+            const montant_depot = document.getElementById("montant_depot").value;
 
-      const data = `nom=${encodeURIComponent(nom)}&prenom=${encodeURIComponent(prenom)}&email=${encodeURIComponent(email)}&age=${age}`;
+            const data = `nom_etablissement=${encodeURIComponent(nom_etablissement)}&adresse=${encodeURIComponent(adresse)}&telephone=${encodeURIComponent(telephone)}&email=${encodeURIComponent(email)}&date_creation=${encodeURIComponent(date_creation)}&solde=${solde}&montant_depot=${montant_depot}`;
 
-      if (id) {
-        ajax("PUT", `/etudiants/${id}`, data, () => {
-          resetForm();
-          chargerEtudiants();
-        });
-      } else {
-        ajax("POST", "/etudiants", data, () => {
-          resetForm();
-          chargerEtudiants();
-        });
-      }
-    }
+            if (id) {
+                ajax("PUT", `/etablissements/${id}`, data, () => {
+                    resetForm();
+                    chargerEtablissements();
+                });
+            } else {
+                ajax("POST", "/etablissements", data, () => {
+                    resetForm();
+                    chargerEtablissements();
+                });
+            }
+        }
 
-    function remplirFormulaire(e) {
-      document.getElementById("id").value = e.id;
-      document.getElementById("nom").value = e.nom;
-      document.getElementById("prenom").value = e.prenom;
-      document.getElementById("email").value = e.email;
-      document.getElementById("age").value = e.age;
-    }
+        function remplirFormulaire(e) {
+            document.getElementById("id_etablissement").value = e.id_etablissement;
+            document.getElementById("nom_etablissement").value = e.nom_etablissement;
+            document.getElementById("adresse").value = e.adresse || '';
+            document.getElementById("telephone").value = e.telephone || '';
+            document.getElementById("email").value = e.email || '';
+            document.getElementById("date_creation").value = e.date_creation || '';
+            document.getElementById("solde").value = e.solde;
+            document.getElementById("montant_depot").value = '';
+        }
 
-    function supprimerEtudiant(id) {
-      if (confirm("Supprimer cet étudiant ?")) {
-        ajax("DELETE", `/etudiants/${id}`, null, () => {
-          chargerEtudiants();
-        });
-      }
-    }
+        function supprimerEtablissement(id) {
+            if (confirm("Supprimer cet établissement ?")) {
+                ajax("DELETE", `/etablissements/${id}`, null, () => {
+                    chargerEtablissements();
+                });
+            }
+        }
 
-    function resetForm() {
-      document.getElementById("id").value = "";
-      document.getElementById("nom").value = "";
-      document.getElementById("prenom").value = "";
-      document.getElementById("email").value = "";
-      document.getElementById("age").value = "";
-    }
+        function resetForm() {
+            document.getElementById("id_etablissement").value = "";
+            document.getElementById("nom_etablissement").value = "";
+            document.getElementById("adresse").value = "";
+            document.getElementById("telephone").value = "";
+            document.getElementById("email").value = "";
+            document.getElementById("date_creation").value = "";
+            document.getElementById("solde").value = "";
+            document.getElementById("montant_depot").value = "";
+        }
 
-    chargerEtudiants();
-  </script>
-
+        chargerEtablissements();
+    </script>
 </body>
 </html>
