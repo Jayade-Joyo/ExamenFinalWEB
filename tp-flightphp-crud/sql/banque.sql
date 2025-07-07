@@ -60,6 +60,7 @@ CREATE TABLE TypePret (
     actif BOOLEAN DEFAULT TRUE
 );
 
+
 -- Table des clients
 CREATE TABLE Client (
     id_client INT PRIMARY KEY AUTO_INCREMENT,
