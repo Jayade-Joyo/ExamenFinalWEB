@@ -157,36 +157,37 @@
     <!-- Champ caché pour l'ID du type de prêt (utilisé pour la modification) -->
  <input type="hidden" id="id_pret">
 
-    <!-- Champs de saisie pour les informations du type de prêt -->
-    <input type="text" id="tp_nom_type" placeholder="Nom du Type de Prêt" required>
-    
-<select id="id_client" required>
-  <option value="">Sélectionnez un client</option>
-</select>
+    <select id="id_client" required>
+      <option value="">Sélectionnez un client</option>  
+    </select>
 
-<select id="id_type_pret" required>
-  <option value="">Sélectionnez un type de prêt</option>
-</select>
+  <select id="id_type_pret" required>
+     <option value="">Sélectionnez un type de prêt</option>
+    </select>
 
-<select id="id_etablissement" required>
-  <option value="">Sélectionnez un établissement</option>
-</select>
+  <select id="id_etablissement" required>
+    <option value="">Sélectionnez un établissement</option>
+    </select>
 
-<select id="id_statut" required>
-  <option value="">Sélectionnez un statut</option>
-</select>
+  <select id="id_statut" required>
+      <option value="">Sélectionnez un statut</option>
+    </select>
 
-<select id="id_frequence" required>
-  <option value="">Sélectionnez une fréquence</option>
-</select>
-    <input type="number" id="montant" placeholder="Montant" step="0.01">
-    <input type="date" id="date_debut"step="0.01">
-    <input type="date" name="date_fin" id="date_fin">
-    <input type="date"  id="date_creation">
-    <input type="date" id="date_fin"> <!-- Corriger le nom -->
-<input type="number" id="taux_applique" placeholder="Taux appliqué" step="0.01"> <!-- Ajouter ce champ -->
+  <select id="id_frequence" required>
+      <option value="">Sélectionnez une fréquence</option>
+    </select>
 
-    <button onclick="ajouterOuModifierTypePret()">Ajouter / Modifier Type de Prêt</button>
+  <input type="number" id="montant" placeholder="Montant" step="0.01">
+
+  <input type="date" id="date_debut"step="0.01">
+
+  <input type="date" name="date_fin" id="date_fin">
+
+  <input type="date"  id="date_creation">
+
+  <input type="number" id="taux_applique" placeholder="Taux appliqué" step="0.01"> <!-- Ajouter ce champ -->
+
+    <button onclick="ajouterOuModifierPret()">Ajouter / Modifier Type de Prêt</button>
     <button onclick="resetFormTypePret()" style="background-color: #95a5a6;">Réinitialiser</button>
   </div>
 
@@ -302,7 +303,7 @@ async function chargerPret() {
 }
 
 
-    function ajouterOuModifierTypePret() {
+    function ajouterOuModifierPret() {
       const id_pret = document.getElementById("id_pret").value;
       const data = {
         tp_nom_type: document.getElementById("tp_nom_type").value,
