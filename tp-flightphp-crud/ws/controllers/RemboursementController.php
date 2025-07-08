@@ -92,6 +92,55 @@ class RemboursementController {
         Flight::json($remboursements);
     }
 
-    
+   
+    public static function simulerEtEnregistrer($id_pret) {
+    $pret = Pret::getById($id_pret);
+    if (!$pret) {
+        Flight::halt(404, json_encode(['message' => 'Prêt introuvable']));
+        return;
+    }
+
+    $capital = $pret['montant'];
+    $taux_annuel = $pret['taux_applique'] / 100;
+    $taux_mensuel = $taux_annuel / 12;
+
+    $date_debut = new DateTime($pret['date_debut']);
+    $date_fin = new DateTime($pret['date_fin']);
+    $diff = $date_debut->diff($date_fin);
+    $nb_mois = $diff->y * 12 + $diff->m;
+
+    $annuite = round($capital * ($taux_mensuel / (1 - pow(1 + $taux_mensuel, -$nb_mois))), 2);
+    $base = $capital;
+
+    for ($i = 0; $i < $nb_mois; $i++) {
+        $interet = round($base * $taux_mensuel, 2);
+        $amortissement = round($annuite - $interet, 2);
+        $val_fin = round($base - $amortissement, 2);
+
+        $date_echeance = clone $date_debut;
+        $date_echeance->modify("+$i months");
+        $mois = (int)$date_echeance->format('n');
+        $annee = (int)$date_echeance->format('Y');
+
+        Remboursement::create((object)[
+            'id_pret' => $id_pret,
+            'id_statut' => 1, // Statut initial
+            'base' => $base,
+            'interet' => $interet,
+            'amortissement' => $amortissement,
+            'annuite' => $annuite,
+            'val_fin' => $val_fin,
+            'date_echeance' => $date_echeance->format('Y-m-d'),
+            'mois' => $mois,
+            'annee' => $annee
+        ]);
+
+        $base = $val_fin;
+    }
+
+    Flight::json(['message' => 'Échéancier généré et enregistré avec succès']);
+}
+
+
 
 }
