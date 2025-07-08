@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS banque;
 CREATE DATABASE IF NOT EXISTS banque;
 USE banque;
 
@@ -177,4 +178,4 @@ CREATE TABLE Remboursement (
 -- );
 
 -- SELECT * FROM Remboursement WHERE (annee > 2026 OR (annee = 2026 AND mois >= 2)) AND (annee < 2026 OR (annee = 2026 AND mois <= 5));
-SELECT * FROM Remboursement WHERE (annee > 2026 OR (annee = 2026 AND mois >= 2)) AND (annee < 2026 OR (annee = 2026 AND mois <= 5));
+-- SELECT * FROM Remboursement WHERE (annee > 2026 OR (annee = 2026 AND mois >= 2)) AND (annee < 2026 OR (annee = 2026 AND mois <= 5));

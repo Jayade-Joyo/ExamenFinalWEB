@@ -209,7 +209,7 @@
           });
       }
 
-      Fonction pour charger les prêts d'un client (modifiée pour ajouter le clic)
+      // Fonction pour charger les prêts d'un client (modifiée pour ajouter le clic)
       function chargerPrets(clientId, container) {
         fetch(`${apiBase}/clients/${clientId}/prets`)
           .then(response => response.json())
@@ -237,8 +237,6 @@
             });
           });
       }
-
-     
 
       // Fonction pour afficher les détails d'un prêt
       function afficherDetailsPret(pretId) {
@@ -339,7 +337,7 @@
         }
       }
 
-      // Fonction pour afficher/masquer les prêts (inchangée)
+      // Fonction pour afficher masquer les prêts (inchangée)
       function togglePrets(header) {
         const card = header.parentElement;
         const pretsContainer = card.querySelector('.prets-container');

@@ -16,6 +16,12 @@ Flight::route('DELETE /remboursements/@id', ['RemboursementController', 'delete'
 // Ajouter cette route pour le filtrage par période
 Flight::route('GET /remboursements/periode/@mois_debut/@annee_debut/@mois_fin/@annee_fin', ['RemboursementController', 'getByPeriode']);
 
+Flight::route('POST /remboursement/generer/@id_pret', ['RemboursementController', 'genererEcheancierConstante']);
+Flight::route('GET /simulation/pret/@id', ['PretController', 'simulerRemboursement']);
+
+Flight::route('POST /remboursement/simuler-et-enregistrer/@id_pret', ['RemboursementController', 'simulerEtEnregistrer']);
+
+
 // Route pour obtenir les données agrégées pour le graphique
 Flight::route('GET /remboursements/graphique/interets', ['RemboursementController', 'getInteretsGraphique']);
 Flight::route('GET /remboursements/graphique/interets/periode/@mois_debut/@annee_debut/@mois_fin/@annee_fin', ['RemboursementController', 'getInteretsGraphiquePeriode']);

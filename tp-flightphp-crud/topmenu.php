@@ -121,7 +121,7 @@
       </li>
       
       <li>
-        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'prets.php' ? 'active' : ''; ?>" href="prets.php">
+        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'prets.php' ? 'active' : ''; ?>" href="simuler_remboursement.php">
           <i class="fas fa-hand-holding-usd"></i>
           <span>Prêts</span>
         </a>

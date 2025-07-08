@@ -9,3 +9,4 @@ Flight::route('DELETE /pret/@id', ['PretController', 'delete']);
 Flight::route('GET /prets/@id/details', ['PretController', 'getPretDetails']);
 
 Flight::route('GET /prets/@id/pdf', ['PretController', 'generatePDF']);
+
