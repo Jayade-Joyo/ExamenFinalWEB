@@ -1,6 +1,8 @@
 <?php
 // Inclure le modèle TypePret
 require_once __DIR__ . '/../models/Pret.php';
+require_once __DIR__ . '/../models/GestionPret.php';
+require_once __DIR__ . '/../helpers/Utils.php';
 
 /**
  * Classe TypePretController
@@ -8,6 +10,101 @@ require_once __DIR__ . '/../models/Pret.php';
  * Cette version suit strictement la structure de la table TypePret de banque.sql (sans date_creation).
  */
 class PretController {
+    private $gestionPret;
+    
+    public function __construct() {
+        $this->gestionPret = new GestionPret();
+    }
+    
+    public function index() {
+        try {
+            $prets = $this->gestionPret->getTousLesPrets();
+            $clients = $this->gestionPret->getClients();
+            $typesPret = $this->gestionPret->getTypesPret();
+            $etablissements = $this->gestionPret->getEtablissements();
+            $statuts = $this->gestionPret->getStatutsPret();
+            
+            // Charger la vue à la racine
+            require_once 'gestionPret.php';
+        } catch (Exception $e) {
+            error_log("Erreur dans PretController::index : " . $e->getMessage());
+            // Afficher une page d'erreur ou rediriger
+            die("Erreur lors du chargement des données : " . $e->getMessage());
+        }
+    }
+    
+    public function handleAjax() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Méthode non autorisée']);
+            exit;
+        }
+        
+        $action = $_POST['action'] ?? '';
+        
+        switch ($action) {
+            case 'creer_pret':
+                try {
+                    $data = [
+                        'id_client' => $_POST['id_client'],
+                        'id_type_pret' => $_POST['id_type_pret'],
+                        'id_etablissement' => $_POST['id_etablissement'],
+                        'id_statut' => 1,
+                        'montant' => $_POST['montant'],
+                        'date_debut' => $_POST['date_debut'],
+                        'date_fin' => $_POST['date_fin'],
+                        'taux_applique' => $_POST['taux_applique'],
+                        'taux_Assurance' => $_POST['taux_Assurance'] ?? 0
+                    ];
+                    
+                    if ($this->gestionPret->creerPret($data)) {
+                        echo json_encode(['success' => true, 'message' => 'Prêt créé avec succès']);
+                    } else {
+                        echo json_encode(['success' => false, 'message' => 'Erreur lors de la création']);
+                    }
+                } catch (Exception $e) {
+                    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+                }
+                exit;
+                
+            case 'previsualiser_pret':
+                $data = [
+                    'montant' => $_POST['montant'],
+                    'taux_applique' => $_POST['taux_applique'],
+                    'taux_Assurance' => $_POST['taux_Assurance'] ?? 0,
+                    'date_debut' => $_POST['date_debut'],
+                    'date_fin' => $_POST['date_fin']
+                ];
+                
+                $preview = $this->gestionPret->previsualiserPret($data);
+                echo json_encode($preview);
+                exit;
+                
+            case 'update_statut':
+                if ($this->gestionPret->updateStatutPret($_POST['id_pret'], $_POST['nouveau_statut'])) {
+                    echo json_encode(['success' => true, 'message' => 'Statut mis à jour']);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Erreur lors de la mise à jour']);
+                }
+                exit;
+                
+            case 'calculer_amortissement':
+                $tableau = $this->gestionPret->calculerTableauAmortissement(
+                    $_POST['montant'],
+                    $_POST['taux'],
+                    $_POST['taux_Assurance'] ?? 0,
+                    $_POST['duree']
+                );
+                echo json_encode($tableau);
+                exit;
+                
+            default:
+                echo json_encode(['success' => false, 'message' => 'Action non reconnue']);
+                exit;
+        }
+    }
+
+    
     public function getPretDetails($pretId) {
         try {
             $pret = $this->model->getPretWithDetails($pretId);

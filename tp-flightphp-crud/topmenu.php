@@ -142,9 +142,9 @@
       </li>
       
       <li>
-        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'interets.php' ? 'active' : ''; ?>" href="interets.php">
+        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'gestionPret.php' ? 'active' : ''; ?>" href="/ExamenFinalWEB/tp-flightphp-crud/ws/views/gestionPret.php">
           <i class="fas fa-coins"></i>
-          <span>Intérêts Gagnés</span>
+          <span>Prêts</span>
         </a>
       </li>
     </ul>

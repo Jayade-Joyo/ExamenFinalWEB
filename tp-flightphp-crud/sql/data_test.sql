@@ -13,8 +13,8 @@ VALUES
 -- Insertions pour Client (2 clients)
 INSERT INTO Client (nom, prenom, date_naissance, adresse, telephone, email, profession, revenu_mensuel)
 VALUES 
-('Dupont', 'Jean', '1985-07-22', '45 Rue de la République, Lyon', '0645321897', 'jean.dupont@email.com', 'Ingénieur', 800000.00),
-('Martin', 'Sophie', '1992-11-05', '12 Boulevard Voltaire, Marseille', '0789654321', 'sophie.martin@email.com', 'Enseignante', 1000000.00);
+('Dupont', 'Jean', '1985-07-22', '45 Rue de la République, Lyon', '0645321897', 'jean', 'Ingénieur', 800000.00),
+('Martin', 'Sophie', '1992-11-05', '12 Boulevard Voltaire, Marseille', '0789654321', 'sophie', 'Enseignante', 1000000.00);
 
 -- Insertion pour Pret
 INSERT INTO Pret (

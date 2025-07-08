@@ -206,7 +206,8 @@
 
   <script>
     // URL de base de votre API FlightPHP
-    const apiBase = "http://localhost/ExamenFinalWEB/tp-flightphp-crud/ws"; // Vérifiez ce chemin !
+    // const apiBase = "http://localhost/ExamenFinalWEB/tp-flightphp-crud/ws"; // Vérifiez ce chemin !
+    const apiBase = "/ETU003366/ExamenFinalWEB/tp-flightphp-crud/ws"; // Vérifiez ce chemin !
 
     /**
      * Fonction utilitaire pour effectuer des requêtes AJAX.

@@ -36,7 +36,8 @@
     </table>
 
     <script>
-      const apiBase = "http://localhost/ExamenFinalWEB/tp-flightphp-crud/ws";
+    const apiBase = "/ETU003366/ExamenFinalWEB/tp-flightphp-crud/ws"; // Vérifiez ce chemin !
+      // const apiBase = "http://localhost/ExamenFinalWEB/tp-flightphp-crud/ws";
 
       function ajax(method, url, data, callback) {
         const xhr = new XMLHttpRequest();

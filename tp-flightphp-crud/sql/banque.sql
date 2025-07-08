@@ -21,9 +21,13 @@ CREATE TABLE TypeOperation (
 );
 
 INSERT INTO TypeOperation (code_type, libelle) VALUES 
-('DEPOT', 'Dépôt de fonds'),
+('DEPOT', 'Depot de fonds'),
 ('RETRAIT', 'Retrait de fonds'),
-('PRET', 'Prêt accordé');
+('PRET', 'Pret accorde');
+-- INSERT INTO TypeOperation (code_type, libelle) VALUES 
+-- ('DEPOT', 'Dépôt de fonds'),
+-- ('RETRAIT', 'Retrait de fonds'),
+-- ('PRET', 'Prêt accordé');
 
 
 CREATE TABLE HistoriqueMouvement (
@@ -85,9 +89,9 @@ CREATE TABLE StatutPret (
 
 INSERT INTO StatutPret (code_statut, libelle) VALUES
 ('EN_ATTENTE', 'En attente de traitement'),
-('APPROUVE', 'Prêt approuvé'),
-('REJETE', 'Prêt rejeté'),
-('REMBOURSE', 'Prêt remboursé');
+('APPROUVE', 'Pret approuve'),
+('REJETE', 'Pret rejete'),
+('REMBOURSE', 'Pret rembourse');
 
 -- Table des fréquences de paiement
 CREATE TABLE FrequencePaiement (
