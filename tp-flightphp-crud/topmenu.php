@@ -100,9 +100,9 @@
   <div class="topmenu-nav">
     <ul>
       <li>
-        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'dashboard.php' ? 'active' : ''; ?>" href="dashboard.php">
+        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'client.php' ? 'active' : ''; ?>" href="client.php">
           <i class="fas fa-tachometer-alt"></i>
-          <span>Tableau de bord</span>
+          <span>Clients</span>
         </a>
       </li>
       
@@ -121,7 +121,14 @@
       </li>
       
       <li>
-        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'prets.php' ? 'active' : ''; ?>" href="prets.php">
+        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'TypePret.php' ? 'active' : ''; ?>" href="TypePret.php">
+          <i class="fas fa-hand-holding-usd"></i>
+          <span>Types Prêts</span>
+        </a>
+      </li>
+
+      <li>
+        <a class="nav-link <?php echo basename($_SERVER['PHP_SELF']) === 'simuler_remboursement.php' ? 'active' : ''; ?>" href="simuler_remboursement.php">
           <i class="fas fa-hand-holding-usd"></i>
           <span>Prêts</span>
         </a>

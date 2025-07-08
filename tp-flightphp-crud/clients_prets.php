@@ -209,7 +209,7 @@
           });
       }
 
-      Fonction pour charger les prêts d'un client (modifiée pour ajouter le clic)
+      // Fonction pour charger les prêts d'un client (modifiée pour ajouter le clic)
       function chargerPrets(clientId, container) {
         fetch(`${apiBase}/clients/${clientId}/prets`)
           .then(response => response.json())
