@@ -6,194 +6,270 @@
   <link rel="stylesheet" href="assets/css/style.css">
   <!-- Ajout de Font Awesome pour les icônes -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+    body { font-family: sans-serif; padding: 20px; }
+    input, select, button { margin: 5px; padding: 5px; border-radius: 8px; border: 1px solid #ccc; }
+    button { background-color: #3498db; color: white; cursor: pointer; transition: background-color 0.3s ease; }
+    button:hover { background-color: #2980b9; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+    .section-separator { margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px; }
+
+    /* Styles pour les boutons d'action (crayon et poubelle) */
+    .action-button {
+      background-color: #2ecc71; /* Vert pour modifier */
+      margin: 0 3px;
+      padding: 8px 12px;
+      font-size: 0.9em;
+      box-shadow: none;
+    }
+
+    .action-button:hover {
+      background-color: #27ae60;
+      transform: none;
+    }
+
+    .delete-button {
+      background-color: #e74c3c; /* Rouge pour supprimer */
+    }
+
+    .delete-button:hover {
+      background-color: #c0392b;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      input[type="text"],
+      input[type="number"],
+      input[type="email"],
+      input[type="date"],
+      select {
+        flex: 1 1 100%; /* Un élément par ligne sur les petits écrans */
+      }
+      div {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      button {
+        width: 100%;
+        margin: 5px 0;
+      }
+    }
+  </style>
 </head>
 
 <body>
   <!-- Inclusion du top menu -->
   <?php include 'topmenu.php'; ?>
-
-  <div>
-  <label for="filtre-age">Filtrer par âge :</label>
-  <input type="number" id="filtre-age" placeholder="Âge exact">
-  <button onclick="filtrerParAge()">Filtrer</button>
-  <button onclick="chargerEtudiants()">Réinitialiser</button>
-</div>
-
-<div>
-  <label for="age-min">Âge min :</label>
-  <input type="number" id="age-min" placeholder="Ex: 18">
-
-  <label for="age-max">Âge max :</label>
-  <input type="number" id="age-max" placeholder="Ex: 25">
-
-  <button onclick="filtrerParIntervalle()">Filtrer</button>
-  <button onclick="chargerEtudiants()">Réinitialiser</button>
-</div>
-
-
-
-
-  <div class="main-content">
-    <h1>Gestion des étudiants</h1>
-
+  <div class="section-separator">
+    <h1>Gestion des Établissements Financiers</h1>
     <div>
-      <input type="hidden" id="id">
-      <input type="text" id="nom" placeholder="Nom">
-      <input type="text" id="prenom" placeholder="Prénom">
-      <input type="email" id="email" placeholder="Email">
-      <input type="number" id="age" placeholder="Âge">
-      <button onclick="ajouterOuModifier()">Ajouter / Modifier</button>
+      <input type="hidden" id="ef_id_etablissement">
+      <input type="text" id="ef_nom_etablissement" placeholder="Nom Établissement">
+      <input type="text" id="ef_adresse" placeholder="Adresse">
+      <input type="text" id="ef_telephone" placeholder="Téléphone">
+      <input type="email" id="ef_email" placeholder="Email">
+      <input type="date" id="ef_date_creation" placeholder="Date Création">
+      <input type="number" id="ef_solde" placeholder="Solde Initial" step="0.01">
+      <button onclick="ajouterOuModifierEF()">Ajouter / Modifier Établissement</button>
+      <button onclick="resetFormEF()" style="background-color: #95a5a6;">Réinitialiser</button>
+      <br>
+      <input type="number" id="ef_add_funds_id" placeholder="ID EF pour Ajouter Fonds">
+      <input type="number" id="ef_add_funds_montant" placeholder="Montant à Ajouter" step="0.01">
+      <input type="text" id="ef_add_funds_description" placeholder="Description (optionnel)">
+      <button onclick="ajouterFondsEF()">Ajouter Fonds</button>
     </div>
 
-    <table id="table-etudiants">
+    <table id="table-etablissements">
       <thead>
         <tr>
-          <th>ID</th><th>Nom</th><th>Prénom</th><th>Email</th><th>Âge</th><th>Actions</th>
+          <th>ID</th><th>Nom</th><th>Adresse</th><th>Téléphone</th><th>Email</th><th>Date Création</th><th>Solde</th><th>Actions</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
+  </div>
+  <!-- Liens vers les autres pages (si elles existent) -->
+  <a href="TypePret.html">Gestion des Types de Prêt</a><br>
+  <a href="client.html">Gestion des Clients</a><br>
 
-    <script>
-      const apiBase = "http://localhost/ExamenFinalWEB/tp-flightphp-crud/ws";
 
-      function ajax(method, url, data, callback) {
-        const xhr = new XMLHttpRequest();
-        xhr.open(method, apiBase + url, true);
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        xhr.onreadystatechange = () => {
-          if (xhr.readyState === 4 && xhr.status === 200) {
-            callback(JSON.parse(xhr.responseText));
+  <script>
+    // URL de base de votre API FlightPHP
+    const apiBase = "http://localhost/ExamenFinalWEB/tp-flightphp-crud/ws"; // Vérifiez ce chemin !
+
+    /**
+     * Fonction utilitaire pour effectuer des requêtes AJAX.
+     * @param {string} method - La méthode HTTP (GET, POST, PUT, DELETE).
+     * @param {string} url - L'URL de l'API (chemin relatif à apiBase).
+     * @param {string|null} data - Les données à envoyer (format 'clé=valeur&...'). Null pour les requêtes GET/DELETE sans corps.
+     * @param {function} callback - Fonction de rappel en cas de succès (reçoit les données JSON de la réponse).
+     * @param {function} errorCallback - Fonction de rappel en cas d'erreur (reçoit l'objet d'erreur JSON et le statut HTTP).
+     */
+    function ajax(method, url, data, callback, errorCallback) {
+      const xhr = new XMLHttpRequest();
+      xhr.open(method, apiBase + url, true);
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+          console.log("Statut HTTP:", xhr.status); // DEBUG: Affiche le statut HTTP
+          console.log("Réponse brute du serveur:", xhr.responseText); // DEBUG: Affiche la réponse brute
+
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              callback(JSON.parse(xhr.responseText));
+            } catch (e) {
+              console.error("Erreur de parsing JSON:", e);
+              if (errorCallback) errorCallback({ error: "Réponse du serveur non valide (non-JSON). " + xhr.responseText }, xhr.status);
+            }
+          } else {
+            console.error(`Erreur AJAX: ${xhr.status} - ${xhr.statusText}`);
+            try {
+              const errorResponse = JSON.parse(xhr.responseText);
+              if (errorCallback) errorCallback(errorResponse, xhr.status);
+            } catch (e) {
+              if (errorCallback) errorCallback({ error: "Erreur serveur inconnue ou réponse non JSON. Réponse brute: " + xhr.responseText }, xhr.status);
+            }
           }
-        };
-        xhr.send(data);
-      }
-
-      function filtrerParAge() {
-        const age = document.getElementById("filtre-age").value;
-        if (age) {
-          ajax("GET", `/etudiants/age/${age}`, null, (data) => {
-            const tbody = document.querySelector("#table-etudiants tbody");
-            tbody.innerHTML = "";
-            data.forEach(e => {
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-                <td>${e.id}</td>
-                <td>${e.nom}</td>
-                <td>${e.prenom}</td>
-                <td>${e.email}</td>
-                <td>${e.age}</td>
-                <td>
-                  <button onclick='remplirFormulaire(${JSON.stringify(e)})'>✏️</button>
-                  <button onclick='supprimerEtudiant(${e.id})'>🗑️</button>
-                </td>
-              `;
-              tbody.appendChild(tr);
-            });
-          });
         }
+      };
+      xhr.send(data);
+    }
+
+    // Fonctions pour les Établissements Financiers
+    function chargerEtablissements() {
+      ajax("GET", "/etablissements", null, (data) => {
+        const tbody = document.querySelector("#table-etablissements tbody");
+        tbody.innerHTML = "";
+        data.forEach(ef => {
+          const tr = document.createElement("tr");
+          // Formater la date de création si elle existe
+          const dateCreation = ef.date_creation ? new Date(ef.date_creation).toLocaleDateString('fr-FR') : '';
+
+          tr.innerHTML = `
+            <td>${ef.id_etablissement}</td>
+            <td>${ef.nom_etablissement}</td>
+            <td>${ef.adresse || ''}</td>
+            <td>${ef.telephone || ''}</td>
+            <td>${ef.email || ''}</td>
+            <td>${dateCreation}</td>
+            <td>${parseFloat(ef.solde).toFixed(2)}</td>
+            <td>
+              <button class="action-button" onclick='remplirFormulaireEF(${JSON.stringify(ef)})'>✏️</button>
+              <button class="action-button delete-button" onclick='supprimerEF(${ef.id_etablissement})'>🗑️</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }, (errorResponse) => {
+        alert("Impossible de charger les établissements financiers: " + (errorResponse.error || "Erreur inconnue"));
+      });
+    }
+
+    function ajouterOuModifierEF() {
+      const id_etablissement = document.getElementById("ef_id_etablissement").value;
+      const nom_etablissement = document.getElementById("ef_nom_etablissement").value;
+      const adresse = document.getElementById("ef_adresse").value;
+      const telephone = document.getElementById("ef_telephone").value;
+      const email = document.getElementById("ef_email").value;
+      const date_creation = document.getElementById("ef_date_creation").value;
+      const solde = document.getElementById("ef_solde").value;
+
+      // Validation simple des champs requis
+      if (!nom_etablissement) {
+        alert("Veuillez entrer le nom de l'établissement.");
+        return;
+      }
+      if (!solde || isNaN(parseFloat(solde))) {
+        alert("Veuillez entrer un solde initial valide.");
+        return;
       }
 
-      function filtrerParIntervalle() {
-        const ageMin = document.getElementById("age-min").value;
-        const ageMax = document.getElementById("age-max").value;
+      const data = `nom_etablissement=${nom_etablissement}&adresse=${adresse}&telephone=${telephone}&email=${email}&date_creation=${date_creation}&solde=${solde}`;
 
-        if (ageMin && ageMax) {
-          ajax("GET", `/etudiants/age?min=${ageMin}&max=${ageMax}`, null, (data) => {
-            const tbody = document.querySelector("#table-etudiants tbody");
-            tbody.innerHTML = "";
-            data.forEach(e => {
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-                <td>${e.id}</td>
-                <td>${e.nom}</td>
-                <td>${e.prenom}</td>
-                <td>${e.email}</td>
-                <td>${e.age}</td>
-                <td>
-                  <button onclick='remplirFormulaire(${JSON.stringify(e)})'>✏️</button>
-                  <button onclick='supprimerEtudiant(${e.id})'>🗑️</button>
-                </td>
-              `;
-              tbody.appendChild(tr);
-            });
-          });
-        } else {
-          alert("Veuillez entrer un âge min et max.");
-        }
-      }
+      console.log("Données envoyées pour la requête AJAX (EtablissementFinancier):", data); // DEBUG: Affiche les données envoyées
 
-
-      function chargerEtudiants() {
-        ajax("GET", "/etudiants", null, (data) => {
-          const tbody = document.querySelector("#table-etudiants tbody");
-          tbody.innerHTML = "";
-          data.forEach(e => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>${e.id}</td>
-              <td>${e.nom}</td>
-              <td>${e.prenom}</td>
-              <td>${e.email}</td>
-              <td>${e.age}</td>
-              <td>
-                <button onclick='remplirFormulaire(${JSON.stringify(e)})'>✏️</button>
-                <button onclick='supprimerEtudiant(${e.id})'>🗑️</button>
-              </td>
-            `;
-            tbody.appendChild(tr);
-          });
+      if (id_etablissement) {
+        ajax("PUT", `/etablissements/${id_etablissement}`, data, (response) => {
+          alert(response.message);
+          resetFormEF();
+          chargerEtablissements();
+        }, (errorResponse) => {
+          alert("Erreur lors de la modification de l'établissement: " + (errorResponse.error || JSON.stringify(errorResponse)));
+        });
+      } else {
+        ajax("POST", "/etablissements", data, (response) => {
+          alert(response.message);
+          resetFormEF();
+          chargerEtablissements();
+        }, (errorResponse) => {
+          alert("Erreur lors de l'ajout de l'établissement: " + (errorResponse.error || JSON.stringify(errorResponse)));
         });
       }
+    }
 
-      function ajouterOuModifier() {
-        const id = document.getElementById("id").value;
-        const nom = document.getElementById("nom").value;
-        const prenom = document.getElementById("prenom").value;
-        const email = document.getElementById("email").value;
-        const age = document.getElementById("age").value;
+    function remplirFormulaireEF(ef) {
+      document.getElementById("ef_id_etablissement").value = ef.id_etablissement;
+      document.getElementById("ef_nom_etablissement").value = ef.nom_etablissement;
+      document.getElementById("ef_adresse").value = ef.adresse;
+      document.getElementById("ef_telephone").value = ef.telephone;
+      document.getElementById("ef_email").value = ef.email;
+      document.getElementById("ef_date_creation").value = ef.date_creation || ''; // Assurez-vous que la date est au format YYYY-MM-DD
+      document.getElementById("ef_solde").value = parseFloat(ef.solde).toFixed(2);
+    }
 
-        const data = `nom=${encodeURIComponent(nom)}&prenom=${encodeURIComponent(prenom)}&email=${encodeURIComponent(email)}&age=${age}`;
+    function supprimerEF(id) {
+      if (confirm("Supprimer cet établissement financier ?")) {
+        ajax("DELETE", `/etablissements/${id}`, null, (response) => {
+          alert(response.message);
+          chargerEtablissements();
+        }, (errorResponse) => {
+          alert("Erreur lors de la suppression de l'établissement: " + (errorResponse.error || JSON.stringify(errorResponse)));
+        });
+      }
+    }
 
-        if (id) {
-          ajax("PUT", `/etudiants/${id}`, data, () => {
-            resetForm();
-            chargerEtudiants();
-          });
-        } else {
-          ajax("POST", "/etudiants", data, () => {
-            resetForm();
-            chargerEtudiants();
-          });
-        }
+    function resetFormEF() {
+      document.getElementById("ef_id_etablissement").value = "";
+      document.getElementById("ef_nom_etablissement").value = "";
+      document.getElementById("ef_adresse").value = "";
+      document.getElementById("ef_telephone").value = "";
+      document.getElementById("ef_email").value = "";
+      document.getElementById("ef_date_creation").value = "";
+      document.getElementById("ef_solde").value = "";
+      document.getElementById("ef_add_funds_id").value = "";
+      document.getElementById("ef_add_funds_montant").value = "";
+      document.getElementById("ef_add_funds_description").value = "";
+    }
+
+    function ajouterFondsEF() {
+      const id = document.getElementById("ef_add_funds_id").value;
+      const montant = document.getElementById("ef_add_funds_montant").value;
+      const description = document.getElementById("ef_add_funds_description").value;
+
+      if (!id || !montant || isNaN(parseFloat(montant)) || parseFloat(montant) <= 0) {
+        alert("Veuillez entrer l'ID de l'établissement et un montant valide et positif.");
+        return;
       }
 
-      function remplirFormulaire(e) {
-        document.getElementById("id").value = e.id;
-        document.getElementById("nom").value = e.nom;
-        document.getElementById("prenom").value = e.prenom;
-        document.getElementById("email").value = e.email;
-        document.getElementById("age").value = e.age;
-      }
+      const data = `montant=${montant}&description=${description}`;
+      ajax("POST", `/etablissements/${id}/add_funds`, data, (response) => {
+        alert(response.message);
+        document.getElementById("ef_add_funds_id").value = "";
+        document.getElementById("ef_add_funds_montant").value = "";
+        document.getElementById("ef_add_funds_description").value = "";
+        chargerEtablissements(); // Recharger la liste pour voir le solde mis à jour
+      }, (errorResponse) => {
+        alert("Erreur lors de l'ajout des fonds: " + (errorResponse.error || JSON.stringify(errorResponse)));
+      });
+    }
 
-      function supprimerEtudiant(id) {
-        if (confirm("Supprimer cet étudiant ?")) {
-          ajax("DELETE", `/etudiants/${id}`, null, () => {
-            chargerEtudiants();
-          });
-        }
-      }
+    // Charger les données au chargement de la page
+    // chargerPrets(); // Cette fonction n'est pas définie dans le HTML fourni, si elle existe, décommentez-la.
+    document.addEventListener('DOMContentLoaded', chargerEtablissements); // Charger les établissements au démarrage
+  </script>
 
-      function resetForm() {
-        document.getElementById("id").value = "";
-        document.getElementById("nom").value = "";
-        document.getElementById("prenom").value = "";
-        document.getElementById("email").value = "";
-        document.getElementById("age").value = "";
-      }
-
-      chargerEtudiants();
-    </script>
-  </div>
 </body>
+
 </html>
