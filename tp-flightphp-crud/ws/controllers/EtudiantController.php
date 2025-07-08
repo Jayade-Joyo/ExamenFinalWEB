@@ -32,4 +32,24 @@ class EtudiantController {
         Etudiant::delete($id);
         Flight::json(['message' => 'Étudiant supprimé']);
     }
+
+    public static function getByAge($age) {
+        $etudiants = Etudiant::getByAge($age);
+        Flight::json($etudiants);
+    }
+
+    public static function getByAgeIntervalle() {
+        $min = Flight::request()->query['min'];
+        $max = Flight::request()->query['max'];
+    
+        if (!is_numeric($min) || !is_numeric($max)) {
+            Flight::halt(400, json_encode(['error' => 'Paramètres d\'âge invalides']));
+            return;
+        }
+    
+        $etudiants = Etudiant::getByAgeIntervalle($min, $max);
+        Flight::json($etudiants);
+    }
+    
+    
 }

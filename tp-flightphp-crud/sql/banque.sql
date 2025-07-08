@@ -175,3 +175,6 @@ CREATE TABLE Remboursement (
 --     auteur_modification VARCHAR(100),
 --     FOREIGN KEY (id_type_pret) REFERENCES TypePret(id_type_pret)
 -- );
+
+-- SELECT * FROM Remboursement WHERE (annee > 2026 OR (annee = 2026 AND mois >= 2)) AND (annee < 2026 OR (annee = 2026 AND mois <= 5));
+SELECT * FROM Remboursement WHERE (annee > 2026 OR (annee = 2026 AND mois >= 2)) AND (annee < 2026 OR (annee = 2026 AND mois <= 5));

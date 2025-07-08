@@ -33,4 +33,30 @@ class Etudiant {
         $stmt = $db->prepare("DELETE FROM etudiant WHERE id = ?");
         $stmt->execute([$id]);
     }
+
+    public static function getByAge($age) {
+        $db = getDB();
+        $stmt = $db->prepare("SELECT * FROM etudiant WHERE age = ?");
+        $stmt->execute([$age]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // public static function getByAgeIntervalle($min, $max) {
+    //     $db = getDB();
+    //     $stmt = $db->prepare("SELECT * FROM etudiant WHERE age BETWEEN ? AND ?");
+    //     $stmt->execute([$min, $max]);
+    //     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // }
+
+    public static function getByAgeIntervalle($min, $max) {
+        $db = getDB();
+        $stmt = $db->prepare("SELECT * FROM etudiant WHERE age BETWEEN ? AND ?");
+        $stmt->execute([$min, $max]);
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+        return $result ? $result : [];  // Toujours retourner un tableau
+    }
+    
+    
+    
 }

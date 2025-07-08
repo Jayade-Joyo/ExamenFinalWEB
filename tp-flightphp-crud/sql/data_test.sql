@@ -6,9 +6,9 @@ VALUES ('Banque Nationale', '123 Avenue des Champs, Paris', '0142759632', 'conta
 -- Insertions pour TypePret (3 types)
 INSERT INTO TypePret (nom_type, description, taux_interet, duree_max, montant_min, montant_max, actif)
 VALUES 
-('Prêt Personnel', 'Prêt à la consommation pour besoins personnels', 4.50, 60, 1000000.00, 3000000.00, TRUE),
-('Prêt Immobilier', 'Prêt pour acquisition immobilière', 2.75, 300, 5000000.00, 10000000.00, TRUE),
-('Prêt Étudiant', 'Prêt pour financer des études', 1.90, 84, 10000000.00, 30000000.00, TRUE);
+('Prêt Personnel', 'Prêt à la consommation pour besoins personnels', 4.50, 12, 1000000.00, 3000000.00, TRUE),
+('Prêt Immobilier', 'Prêt pour acquisition immobilière', 2.75, 24, 5000000.00, 10000000.00, TRUE),
+('Prêt Étudiant', 'Prêt pour financer des études', 1.90, 30, 10000000.00, 30000000.00, TRUE);
 
 -- Insertions pour Client (2 clients)
 INSERT INTO Client (nom, prenom, date_naissance, adresse, telephone, email, profession, revenu_mensuel)
@@ -35,11 +35,11 @@ VALUES (
     1, -- ID établissement Banque Nationale
     (SELECT id_statut FROM StatutPret WHERE code_statut = 'APPROUVE'), -- Statut approuvé
     (SELECT id_frequence FROM FrequencePaiement WHERE code_frequence = 'MENSUEL'), -- Fréquence mensuelle
-    12000000.00, -- Montant
+    2000000.00, -- Montant
     '2025-07-01', -- Date début
-    '2026-07-01', -- Date fin (5 ans)
+    '2026-07-01', -- Date fin (1 ans)
     4.50, -- Taux
-    3000000.00 -- Montant restant initial
+    2000000.00 -- Montant restant initial
 );
 
 -- Optionnel: Insertion d'un remboursement associé
@@ -69,3 +69,18 @@ VALUES
 (1, (SELECT id_statut FROM StatutRemboursement WHERE code_statut = 'IMPAYE'), 55948.49, '2025-10-01', 10, 2025),
 (1, (SELECT id_statut FROM StatutRemboursement WHERE code_statut = 'IMPAYE'), 55948.49, '2025-11-01', 11, 2025),
 (1, (SELECT id_statut FROM StatutRemboursement WHERE code_statut = 'IMPAYE'), 55948.49, '2025-12-01', 12, 2025),
+
+-- Table des remboursements
+-- CREATE TABLE Remboursement (
+--     id_remboursement INT PRIMARY KEY AUTO_INCREMENT,
+--     id_pret INT NOT NULL,
+--     id_statut INT NOT NULL DEFAULT 1,
+--     montant DECIMAL(15, 2) NOT NULL,
+--     date_remboursement DATETIME DEFAULT CURRENT_TIMESTAMP,
+--     date_echeance DATE NOT NULL,
+--     mois TINYINT NOT NULL,
+--     annee SMALLINT NOT NULL,
+--     FOREIGN KEY (id_pret) REFERENCES Pret(id_pret),
+--     FOREIGN KEY (id_statut) REFERENCES StatutRemboursement(id_statut),
+--     INDEX idx_mois_annee (mois, annee)  -- Index pour les requêtes par période
+-- );

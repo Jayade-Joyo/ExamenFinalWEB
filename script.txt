@@ -33,7 +33,23 @@ Mettre un filtre (mois et année début ) et mois/année fin
 Créer un graphique à partir du tableau 
 
 
+<div>
+                        <button class="btn-pdf" onclick="genererPDF(${pret.id_pret}, event)">
+                          <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                    </div>
 
 
 
-
+ // Nouvelle fonction pour générer PDF
+      // function genererPDF(pretId, event) {
+      //     event.stopPropagation(); // Empêche l'ouverture de la modal
+      //     window.open(`${apiBase}/prets/${pretId}/pdf`, '_blank');
+      // }
+      function genererPDF(pretId, event) {
+        event.stopPropagation();
+        
+        // Solution temporaire - enlevez '/ws' de l'URL
+        const baseUrl = apiBase.replace('/ws', '');
+        window.open(`${baseUrl}/prets/${pretId}/pdf`, '_blank');
+      }
